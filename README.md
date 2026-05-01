@@ -11,7 +11,7 @@ This repository is the single source of truth for shared coding rules, assistant
 | Guide | Description |
 |---|---|
 | [AI Assistants](ai-assistants.md) | Shared workflow, command system, and agent responsibilities |
-| [Feature Analysis](guides/feature-analysis-guide.md) | How to write and validate feature analysis documents |
+| [Feature Analysis](guides/feature-analysis.md) | How to write and validate feature analysis documents |
 | [Documentation](guides/documentation.md) | How project documentation should be organized and maintained |
 
 ## Standards
