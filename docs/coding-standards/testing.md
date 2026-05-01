@@ -192,7 +192,7 @@ Do not run the full Dusk suite by default.
 Run only the smallest targeted Dusk command needed to validate the approved scope, such as:
 
 ```bash
-php artisan dusk tests/Browser/WeblaborBase/Auth/LoginTest.php
+php artisan dusk tests/Browser/Auth/LoginTest.php
 ```
 
 Use targeted filters when validating a single method:
@@ -225,7 +225,7 @@ test_user_can_purchase_addon
 ```text
 tests/
 ├── Browser/
-│   ├── WeblaborBase/
+│   ├── Core/
 │   │   ├── Auth/
 │   │   │   ├── LoginTest.php
 │   │   │   ├── RegisterTest.php

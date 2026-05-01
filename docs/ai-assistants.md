@@ -181,6 +181,6 @@ When updating assistant workflow in this repository:
 2. Update the agent file in `.opencode/agents/` if the role's responsibilities changed
 3. Update `OPENCODE.md` if the overall workflow or process changes
 4. Update this documentation if the command list, agent list, or installation process changed
-5. Keep references in `README.md` and `docs/weblabor-base/README.md` in sync
+5. Keep references in `README.md` and repository docs in sync
 
 If the same instruction exists in more than one place, prefer reducing duplication and documenting which file is authoritative.
