@@ -1,6 +1,6 @@
 # AI Assistants
 
-This project is configured to work with Codex, Cloud environments, and OpenCode.
+This project is configured to work with Codex, Claude, and OpenCode.
 
 The goal is to keep one shared workflow, one shared standards source, and a single set of commands that any supported assistant can use.
 
@@ -128,9 +128,9 @@ Install these assets globally from this repository. Do not copy commands, agents
 Use [Installation](installation.md) for:
 
 - Codex global setup
-- Cloud global setup
+- Claude global setup
 - OpenCode global setup
-- helper-script usage
+- example prompts to ask the tool to install this repository globally
 - verification and update steps
 
 ---
