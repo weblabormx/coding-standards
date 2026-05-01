@@ -5,7 +5,7 @@ description: Use this command when the user wants to review, refactor, or clean 
 
 # /review — Code Review & Refactor
 
-Your goal is to review existing code thoroughly with the external Code Analysis analyzer, identify violations and risks, and optionally implement all corrections. External Code Analysis belongs in this command and in `/develop`.
+Your goal is to review existing code thoroughly with the external Code Analysis analyzer, identify violations and risks, and optionally implement corrections. External Code Analysis belongs in this command and in `/develop`, but `/review` must not get trapped indefinitely when the remaining analyzer output appears inconsistent, low-value, or rule-related rather than a real code defect.
 
 ---
 
@@ -27,7 +27,14 @@ php artisan validate:now "Code Analysis" "{absolute_file_path}"
 
 The second argument must be the exact absolute path of the file being reviewed.
 
-Show the exact command, result, and findings for each file. If the analyzer cannot read a file or the command is unavailable, stop and report the blocker.
+Show the exact command, result, and findings for each file. This command must keep a visible review trace from the start:
+
+- Show each initial analyzer pass as `Code analyzer iteration 1 started`
+- Show each file being checked and the exact command run
+- Summarize findings in plain language as they appear, for example `Se encontro X -> pendiente de correccion`
+- If no finding appears for a file, say so explicitly
+
+If the analyzer cannot read a file or the command is unavailable, stop and report the blocker.
 
 If `../ia-analyzer` does not exist, use the previous internal fallback review flow: call `code-reviewer` to load the relevant standards, classify findings, flag regressions/translation issues, and group findings by file.
 
@@ -42,7 +49,14 @@ When the review scope includes a local user-facing flow, prefer Browser Use to i
 
 ## Phase 3 — Present Findings And Ask
 
-Present the Code Analysis report when `../ia-analyzer` exists, or the internal code-reviewer report when it does not. Then ask:
+Present the Code Analysis report when `../ia-analyzer` exists, or the internal code-reviewer report when it does not. Include the initial file list, findings by file, and the current status summary before asking:
+
+- Files analyzed
+- Files clean
+- Files with findings
+- Open blockers or suspicious analyzer inconsistencies detected so far
+
+Then ask:
 
 > "¿Quieres que implemente los cambios?"
 
@@ -60,26 +74,42 @@ After the developer modifies files:
 
 1. Compare the working tree to the baseline recorded before fixes.
 2. If `../ia-analyzer` exists, validate every code or implementation file modified by this command with `php artisan validate:now "Code Analysis" "{absolute_modified_file_path}"` from `../ia-analyzer`.
-3. If any file fails, return the analyzer findings to `developer`, update the affected files, and rerun Code Analysis for every affected modified code file.
-4. If the developer changes additional code files while fixing analyzer findings, add those files to the validation queue.
-5. Keep iterating until every modified code file passes completely. Do not stop only because the number of analyzer iterations is high.
-6. If `../ia-analyzer` does not exist, use the previous fallback flow: `developer` applies fixes, `code-reviewer` reviews changed files and cycles with `developer` until clean, then `tech-lead` does architecture review.
+3. Show progress for every iteration. At minimum report:
+   - `Code analyzer iteration N started`
+   - Files in the validation queue
+   - For each repeated finding: `Se encontro X -> arreglando`, `Se encontro X otra vez -> revisar inconsistencia`, or `X resuelto`
+   - Current counts: files passing, files failing, findings resolved this iteration, findings still open
+4. If any file fails, return the analyzer findings to `developer`, update the affected files, and rerun Code Analysis for every affected modified code file.
+5. If the developer changes additional code files while fixing analyzer findings, add those files to the validation queue.
+6. If the same finding or essentially the same rule keeps failing after repeated fixes, do not assume the code is wrong forever. Call `tech-lead` to classify the remaining issue as one of:
+   - real code defect still pending
+   - analyzer or rule inconsistency
+   - ambiguous requirement or missing context
+7. If `tech-lead` concludes the remaining issue is an analyzer or rule inconsistency, and the rest of the modified scope is already clean or materially ready, the command may stop the analyzer loop and close with `PASS WITH REPORTED INCONSISTENCIES` instead of blocking indefinitely.
+8. If `../ia-analyzer` does not exist, use the previous fallback flow: `developer` applies fixes, `code-reviewer` reviews changed files and cycles with `developer` until clean, then `tech-lead` does architecture review.
 
-If 10 minutes pass without a file reaching a passing analyzer result, stop the current analyzer loop, clear the current validation attempt, and retry the analyzer flow once from the current changed-file queue.
+Treat the analyzer as the preferred gate, but not as an infinite loop requirement. Use this escalation logic:
 
-If the retry also goes 10 minutes without a passing file, stop, summarize the remaining findings, and report the blocker instead of continuing indefinitely.
+- If 10 minutes pass without a file reaching a passing analyzer result, stop the current analyzer loop, clear the current validation attempt, and retry the analyzer flow once from the current changed-file queue.
+- If the retry also goes 10 minutes without a passing file, call `tech-lead` before deciding the final status.
+- If `tech-lead` confirms the remaining issue is still a real defect, report `BLOCKED`.
+- If `tech-lead` confirms the remaining issue is likely a rule inconsistency, false positive, or missing standards clarification, report `PASS WITH REPORTED INCONSISTENCIES`.
 
-Do not present the refactor/fix as final-ready until either all modified code files pass Code Analysis when `../ia-analyzer` exists, or the internal fallback review passes when it does not exist.
+Do not present the refactor/fix as full `PASS` until either all modified code files pass Code Analysis when `../ia-analyzer` exists, or the internal fallback review passes when it does not exist. When analyzer inconsistencies remain, use the explicit `PASS WITH REPORTED INCONSISTENCIES` status and explain exactly what was left open and why it was not treated as a blocker.
 
 ---
 
 ## Phase 5 — Present Results
 
-Once validation passes, present the final result to the user:
+Once validation finishes, present the final result to the user:
 
 - Summary of what was corrected
 - Files created or modified
-- Validation method used (`Code Analysis` or internal fallback), iterations, and final pass status
+- Validation method used (`Code Analysis` or internal fallback)
+- Total analyzer iterations performed
+- Per-iteration summary of progress and remaining findings
+- Final status: `PASS`, `PASS WITH REPORTED INCONSISTENCIES`, or `BLOCKED`
+- Any reported inconsistency, ignored analyzer rule, or standards gap that should be reviewed later
 - Translation files updated or synchronized (if applicable)
 - Open questions or blockers (if any)
 
@@ -91,5 +121,6 @@ Once validation passes, present the final result to the user:
 - Prioritize bugs, regressions, and standards violations over cosmetic suggestions
 - If a fix would expand scope materially, stop and ask before continuing
 - If translation issues are found, run `lang:search` and `lang:sync` after corrections are applied
-- If `../ia-analyzer` exists, do not skip the external Code Analysis validation loop for any code or implementation file modified by this command
+- If `../ia-analyzer` exists, run the external Code Analysis validation loop for every code or implementation file modified by this command, and keep a visible progress trace with iterations and findings
+- Do not silently ignore analyzer failures; unresolved failures must end either as `BLOCKED` or as `PASS WITH REPORTED INCONSISTENCIES` with a clear explanation
 - If `../ia-analyzer` does not exist, use the previous `developer` → `code-reviewer` → `tech-lead` fallback flow

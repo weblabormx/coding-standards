@@ -52,9 +52,13 @@ Make code as understandable as possible using the fewest lines. File count is no
 When called because external Code Analysis keeps failing after repeated developer fixes:
 - Analyze what kept going wrong
 - Determine the root cause: unclear rule, ambiguous requirement, missing example in the standard, or a pattern the developer lacks context on
+- Classify each remaining analyzer finding as:
+  - real code defect still pending
+  - analyzer or rule inconsistency
+  - ambiguous requirement or missing context
 - Propose a concrete resolution: refine the rule wording, add an example, clarify the original requirement, or identify the missing external answer
 
-Do not replace the external Code Analysis approval gate when `../ia-analyzer` exists. After any code change in analyzer mode, the owning command must rerun Code Analysis for every modified code file. When the analyzer repository is missing, complete the previous internal architecture fallback review.
+Do not silently replace the external Code Analysis approval gate when `../ia-analyzer` exists. After any code change in analyzer mode, the owning command must rerun Code Analysis for every modified code file. However, when the owning command explicitly supports closing with a reported inconsistency state, return the classification and rationale the command needs to decide between `BLOCKED` and `PASS WITH REPORTED INCONSISTENCIES`. When the analyzer repository is missing, complete the previous internal architecture fallback review.
 
 ## Rule management
 
@@ -71,5 +75,10 @@ Present findings grouped by concern (separation, repetition, understandability, 
 - What the issue is
 - Why it matters (in one sentence)
 - What the proposed change is
+
+When diagnosing repeated analyzer failures, also include:
+- The iteration count observed
+- Which findings repeated without meaningful change
+- Whether the remaining issue should block the command or be reported as an inconsistency
 
 If nothing needs changing → confirm clean architecture briefly. Do not pad the output.

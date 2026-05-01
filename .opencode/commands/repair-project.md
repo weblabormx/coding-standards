@@ -36,13 +36,13 @@ Before planning repairs, check whether the project has focused validation availa
 
 Inspect, without modifying files:
 - Local project URL in `.env`, preferring `APP_URL`
-- Whether the local server and affected route can be opened in Browser Use
+- Whether the local server and affected route can be opened with `@browser-use` in the Codex in-app browser
 - Relevant artisan, route, config, or build commands that can prove the broken area
 - Existing browser tooling only as context, not as a required workflow step
 - Whether the repaired flow has a practical browser traversal scope such as dashboard, module navigation, index/detail pages, or route group entry points
 
 When browser validation is possible:
-- Use Browser Use as the preferred way to reproduce and verify the visible failure
+- Use `@browser-use` as the required primary way to reproduce and verify the visible failure
 - Identify the traversal scope and entry points that will be used later during browser validation
 
 If browser validation is not possible, tell the user clearly:
@@ -52,6 +52,7 @@ If browser validation is not possible, tell the user clearly:
 When continuing without browser validation:
 - State that validation confidence is lower
 - Use the strongest available checks: artisan commands, targeted manual reasoning from branch comparison, build, and translation checks
+- State explicitly that command-line checks, runtime checks, or automated tests do not replace visible browser validation for a user-facing flow when `@browser-use` is available
 - Do not claim the flow is fully validated if no browser or equivalent runtime validation covered it
 
 ---
@@ -91,8 +92,8 @@ Ask only for missing information that materially affects the repair:
 If the user already provided enough context, infer the answers and state them briefly before proceeding.
 
 Default commit interpretation for this command:
-- If the user asked for a long repair run and did not forbid commits, treat `Commits per completed repair task` as preferred
-- If commit preference is unclear and the command is running interactively, ask once before the first commit
+- If the user asked for a long repair run and did not forbid commits, treat `Commits per completed repair task` as the default commit mode to present in the repair plan confirmation
+- If commit preference is unclear and the command is running interactively, state that the default selection in the repair plan is `Commits per completed repair task` unless the user explicitly switches to another mode
 
 ---
 
@@ -145,12 +146,14 @@ Comparison rules:
 Reproduce or detect the failure with the smallest safe validation first.
 
 Use targeted checks before broad checks:
-- Browser Use for the visible flow when the issue is user-facing and the local URL is available
+- `@browser-use` for the visible flow when the issue is user-facing and the local URL is available
 - `php artisan route:list` for route or controller failures
 - `php artisan config:clear` or `php artisan view:clear` for local cache issues when safe
 - `composer install` when dependency installation is the suspected issue
 - `npm run build` when assets or frontend build are involved
 - `php artisan lang:search` when translations are involved and a read-only check is enough
+
+When the issue is a user-facing flow and `@browser-use` is available, do not treat command-line checks, runtime checks, PHPUnit, Pest, or build output as a substitute for browser validation. Those checks can support the repair, but the visible flow must still be traversed in the browser before the task is considered fully validated.
 
 Run mutation-capable translation commands such as `php artisan lang:sync` only after the repair plan is approved or when the user already authorized direct repair.
 
@@ -200,8 +203,11 @@ The confirmation must include:
 - Planned repair tasks
 - Validation commands or checks to run
 - Browser traversal scope and entry points for the repaired flow when Browser Use validation is available
+- Browser traversal cap for the repaired flow when Browser Use validation is available
 - Commit mode
 - Timebox and stall rules for this run
+
+If the user did not explicitly choose a commit mode, present `Commits per completed repair task` as the selected default in the confirmation instead of leaving commit behavior implicit.
 
 Do not edit files, run mutation-capable commands, or create commits until the user confirms the repair plan, unless the user already gave explicit permission to proceed with repairs and commits in the original request.
 
@@ -241,6 +247,8 @@ Visible progress rules:
 - Report progress in the user's language at least every 15 minutes during long runs
 - Report when a task starts, when a task passes validation, when a task is committed, and when a task is blocked
 - When browser traversal runs, report the current iteration number plus page coverage and blockers according to Phase 9
+- For each validation step that materially checks the repair, emit a visible test-style pass/fail line so the user can see what succeeded, failed, or was blocked
+- Treat these visible pass/fail lines as reporting evidence only. Do not present them as proof that automated unit or integration tests were executed unless such tests actually ran
 - If the run is stalled, say exactly what was tried, what failed, and what evidence is still missing
 
 ---
@@ -268,19 +276,20 @@ Validation order:
    - Run `npm run build` only when assets, Blade, Livewire views, CSS, or JS changed
 
 5. **Browser validation**
-   - Prefer Browser Use for repaired user-facing flows using the local project URL from `.env`
+   - Use `@browser-use` for repaired user-facing flows using the local project URL from `.env`
    - Add `http://` when the URL is missing a scheme
    - Reload after code changes before checking the repaired flow
    - Traverse the reachable in-scope pages for the repaired flow, not only the first visible page
    - Start from the confirmed entry points and build a queue of reachable in-scope pages
-   - The default traversal boundary is the approved repaired area only: stay within the same module, route group, or visible task flow; do not fan out into unrelated navigation, pagination, filter combinations, destructive actions, or secondary modules unless the user explicitly included them
+   - The default traversal boundary is the approved repaired area only: stay within the same module, route group, or visible task flow; follow reachable internal links page by page through a systematic in-scope traversal; do not fan out into unrelated navigation, pagination, filter combinations, destructive actions, or secondary modules unless the user explicitly included them
    - Stop traversal when the in-scope queue is exhausted, when the agreed traversal cap is reached, or when further expansion yields no new in-scope pages
    - Follow internal links, menus, tabs, and index/detail transitions that are directly reachable and relevant to the repaired area
    - Do not perform destructive actions during traversal unless the user explicitly approved them as part of the repair
-   - For each visited page, report the required evidence fields: current repair iteration, page number or identifier, page label or route, outcome, and blocker or finding when relevant. A localized test-style line with symbols such as `✓` or `✗` is encouraged, but the exact wording is not mandatory
+   - For each visited page, report the required evidence fields: current repair iteration, page number or identifier, page label or route, outcome, and blocker or finding when relevant
+   - The visible trace for each visited page must use a localized test-style pass/fail line with a clear outcome marker such as `✓`, `✗`, or an equivalent unambiguous pass/fail label in the user's language
    - Keep counts for pages discovered, pages visited, pages passed, pages blocked, pages skipped, and total traversal iterations
-   - Treat the traversal output as a lightweight browser scraping report of reachable pages and findings inside the approved scope
-   - If Browser Use is unavailable for this run, state that limitation and replace it with the strongest available runtime checks
+   - Treat the traversal output as a page coverage report of reachable pages and findings inside the approved scope
+   - If `@browser-use` is unavailable for this run, state that limitation and replace it with the strongest available runtime checks
 
 Important:
 - Repair confidence comes from proving the broken flow works again
@@ -291,7 +300,7 @@ Important:
 
 ## Phase 10 - Commit Flow
 
-Only create commits if the user approved commits in Phase 2.
+Create commits according to the commit mode confirmed in Phase 7.
 
 For each completed repair task:
 
@@ -316,6 +325,7 @@ Commit rules:
 - Do not wait for unrelated follow-up cleanup before committing a task that already works
 - Do not push unless explicitly requested
 - Do not amend commits unless explicitly requested
+- The only mode that skips commits is an explicit `No commits` choice confirmed in Phase 2
 
 ---
 
