@@ -21,6 +21,7 @@
 - Always use `function` for closures — never use arrow functions (`fn`). This applies to all `map`, `filter`, `each`, `mapWithKeys`, and similar calls
 - Do not fail just because a callback, closure, process collector, or helper method is used once. Fail only when inlining would clearly improve readability and the extracted piece does not name a meaningful concept.
 - Do not fail a short intermediate variable when it carries useful type context, avoids repeating a long chain, or makes a side effect call clearer (for example a documented authenticated user before `notify()`).
+- Do not fail small framework lifecycle, convention, or contract methods whose value is their recognized name and integration point, even if they are short. Examples include `rules()`, `validationAttributes()`, `validationMessages()`, `casts()`, and similar framework hook methods.
 
 ```php
 // Correct
@@ -102,6 +103,8 @@ $countryCode = strtoupper(trim($request->input('country')));
 Always use long-form function syntax, never arrow functions.
 
 Fail this rule only when the source code actually contains the `fn (` or `fn(` token for an arrow function. If every closure uses `function (...) { ... }`, this rule passes.
+If the file contains only `function (...) { ... }` closures, this rule must pass even when the closure is one line long or immediately chained in a collection pipeline.
+Do not fail with contradictory reasoning. The presence or absence of the literal `fn` token is the deciding evidence for this rule.
 
 ```php
 // Correct
@@ -118,6 +121,8 @@ Fail this rule only when the source code actually contains the `fn (` or `fn(` t
 Never add a blank line directly before an `if` statement inside a method.
 
 Fail this rule only when there is an actual empty line immediately before the `if` statement. Do not infer a failure from spacing elsewhere in the method. Quote the exact offending snippet when failing.
+Evaluate this literally from the raw source: there must be two consecutive line breaks between the previous non-empty line and the `if` line. A normal newline after a fluent chain or statement is not a blank line.
+The line physically above the `if` must itself be blank. If the immediately preceding line contains code, a brace, a closure signature, or the end of a fluent chain, this rule passes.
 
 ```php
 // Correct

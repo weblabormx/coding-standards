@@ -25,11 +25,15 @@ Section comments must always use the multi-line format:
 
 Never use single-line format: `/* Rules */` is incorrect.
 
-> Section comments are required when the component has more than one logical group. `mount`, `save`, and `render` are never wrapped in a section — they are structural anchors.
+> Section comments are optional organization aids when the component has more than one logical group. Use them when they add clarity. `mount`, `save`, and `render` are never wrapped in a section — they are structural anchors.
 
 Compact components do not need artificial section comments. If the file only has a small set of straightforward action/helper methods, it can still pass without extra section headers. Fail this rule only for objective ordering problems such as `mount()` not being first after properties, `render()` not being last, or rule/validation sections appearing out of order.
 The absence of section comments by itself is **never** enough to fail this rule.
 Administrative utility actions and their private helper methods can count as a single domain group when they support the same operational surface. Do not split one cohesive utility workflow into fake groups just to demand section comments.
+Private or protected helper methods that exist only to support one main action may appear immediately before or immediately after that action. Treat that whole cluster as one action block. Do not fail just because helper methods are adjacent to `save()` / `deploy()` / the main action.
+Do not require an `Actions` section comment. Do not fail just because optional sections are absent.
+Do not treat the first optional domain section comment as a hard boundary that retroactively invalidates earlier domain methods. Domain methods may appear before the first domain header, and the component still passes if the overall structural anchors stay in the correct order.
+After `mount()` and the optional rules section, the remaining operational methods may be grouped flexibly as domain logic, utility actions, validation helpers, and action-adjacent helpers. Do not fail this rule just because one public action appears before or after another domain block when the overall component structure is still coherent and `render()` remains last.
 
 ### Authorization in Livewire Components
 
@@ -39,6 +43,8 @@ Every Livewire component that reads or mutates protected resources must enforce 
 - Every mutating action method (`delete`, `save`, `confirm*`, etc.) must call `$this->authorize()` with the relevant policy action before doing any work
 - Authorization must never be skipped just because the button is hidden in the view — the component is the authoritative guard
 - If there is no meaningful policy subject yet, an equivalent explicit hard guard at the component level is acceptable (for example `abort_unless(auth()->user()?->sudo, 403)`). Do not fail when the component clearly enforces a strong server-side guard even if it is not written with `$this->authorize()`.
+- When the whole component is protected by one strong component-level guard (for example a sudo-only admin utility), do not require every later action method to repeat the same guard or add redundant `$this->authorize()` calls.
+- When the guarded subject is the authenticated user or another component-wide contextual object, assigning that contextual object during `mount()` is allowed as part of establishing the guarded state. Do not fail just because `$this->user = auth()->user()` happens immediately before the hard guard.
 
 ```php
 // Correct
@@ -185,6 +191,10 @@ public string $description = '';
 - When creating or editing a record, declare a public model property (for example, `public User $user`) and work exclusively with that instance throughout the component.
 - Avoid creating separate public properties for each field or manually assembling data arrays before saving.
 - Persist changes directly through the model instance with $this->user->save().
+- This rule is for CRUD-style create/edit forms backed by an Eloquent model. Do not apply it to admin utility components, settings screens, DTO/state objects, wizard state containers, or other non-CRUD workflows that are not editing one Eloquent record through a standard form surface.
+- The `mount(?User $user = null)` example below is illustrative only. Do not require that exact signature, and do not require creating a brand-new model instance when the component legitimately works with the authenticated user, a route-bound model, or another existing contextual model instance.
+- If the Blade file is not part of the reviewed source, do not fail this rule only because `wire:model="model.field"` bindings are not visible from the PHP class. Fail only when the reviewed code itself clearly shows the anti-pattern: separate field properties for one record, manual assembly arrays for persistence, or avoiding the model instance entirely.
+- Transient UI or workflow attributes temporarily attached to the model instance inside the component are acceptable when the component still uses one model instance as the primary record surface.
 
 ```php
 public User $user;
@@ -292,6 +302,9 @@ $this->closeModalWithEvents([ParentList::class => 'postSaved']); // close + noti
 - Numeric values → reasonable `max`/`min`
 - Strings → length validation
 - Validate consistency between database schema and validation rules
+- Apply the DB-specific parts of this rule only when the validated field clearly maps to a persisted database column or stored payload. Do not assume every validated property is a DB column.
+- Do not fail transient UI fields, operational form state, contextual metadata, or model-attached runtime attributes just because they lack `required` or string length limits. Require those only when the domain or storage contract clearly needs them.
+- If the schema or persisted contract is not visible in the reviewed source, do not invent non-nullability. Fail only when the code or known schema gives concrete evidence that the field is persisted and constrained differently.
 - In Laravel or Livewire validation, do not use `messages()` just to restate Laravel's default validation text with a translated field name
 - Prefer `validationAttributes()` or `attributes()` to provide the user-facing field label when the default validation message structure is still correct
 - Use `messages()` only when the validation copy is genuinely custom and changes the meaning or wording beyond Laravel's standard message
