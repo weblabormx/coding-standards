@@ -27,6 +27,10 @@ Never use single-line format: `/* Rules */` is incorrect.
 
 > Section comments are required when the component has more than one logical group. `mount`, `save`, and `render` are never wrapped in a section — they are structural anchors.
 
+Compact components do not need artificial section comments. If the file only has a small set of straightforward action/helper methods, it can still pass without extra section headers. Fail this rule only for objective ordering problems such as `mount()` not being first after properties, `render()` not being last, or rule/validation sections appearing out of order.
+The absence of section comments by itself is **never** enough to fail this rule.
+Administrative utility actions and their private helper methods can count as a single domain group when they support the same operational surface. Do not split one cohesive utility workflow into fake groups just to demand section comments.
+
 ### Authorization in Livewire Components
 
 Every Livewire component that reads or mutates protected resources must enforce authorization. 
@@ -34,6 +38,7 @@ Every Livewire component that reads or mutates protected resources must enforce 
 - `mount()` must call `$this->authorize()` for the view intent (`'view'`, `'create'`, `'update'`) before assigning any properties
 - Every mutating action method (`delete`, `save`, `confirm*`, etc.) must call `$this->authorize()` with the relevant policy action before doing any work
 - Authorization must never be skipped just because the button is hidden in the view — the component is the authoritative guard
+- If there is no meaningful policy subject yet, an equivalent explicit hard guard at the component level is acceptable (for example `abort_unless(auth()->user()?->sudo, 403)`). Do not fail when the component clearly enforces a strong server-side guard even if it is not written with `$this->authorize()`.
 
 ```php
 // Correct
@@ -161,11 +166,13 @@ Reserve `#[Computed]` for values consumed in the Blade view or reused across mul
 - Typed properties only required for Eloquent model objects
 - Declare multiple simple properties on one line
 - Never initialize string properties to empty string (`''`)
+- A meaningful non-empty default string is allowed when it is intentional UI or workflow state. Do not fail this rule just because a simple property has a non-empty string default.
 
 ```php
 // Correct
 public Plan $object;
 public $prices = [], $limits = [], $features = [], $newFeature;
+public $afterDeployCommands = 'composer install';
 
 // Incorrect
 public string $name = '';

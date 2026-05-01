@@ -1,6 +1,6 @@
 ---
 name: repair-project
-description: Use this command when a project, branch, or copied implementation stopped working after a merge, Laravel upgrade, Weblabor Base update, dependency update, branch divergence, or copy from another project. It compares against a known-working source, repairs the broken project with minimal fixes, validates functionality with focused runtime and Browser Use checks when available, and can create commits per completed repair task when approved.
+description: Use this command when a project, branch, or copied implementation stopped working after a merge, Laravel upgrade, Weblabor Base update, dependency update, branch divergence, or copy from another project. It compares against a known-working source, repairs the broken project with minimal fixes, validates functionality with focused runtime and Browser Use checks when available, traverses reachable pages in the repaired flow with explicit pass/fail reporting, and can create commits per completed repair task when approved.
 ---
 
 # /repair-project - Restore Broken Project
@@ -39,9 +39,11 @@ Inspect, without modifying files:
 - Whether the local server and affected route can be opened in Browser Use
 - Relevant artisan, route, config, or build commands that can prove the broken area
 - Existing browser tooling only as context, not as a required workflow step
+- Whether the repaired flow has a practical browser traversal scope such as dashboard, module navigation, index/detail pages, or route group entry points
 
 When browser validation is possible:
 - Use Browser Use as the preferred way to reproduce and verify the visible failure
+- Identify the traversal scope and entry points that will be used later during browser validation
 
 If browser validation is not possible, tell the user clearly:
 
@@ -167,6 +169,7 @@ For each task, capture:
 - The validation that proves the fix worked
 - Whether a commit was created
 - The current attempt count for that task
+- The traversal scope and notable page-access blockers relevant to that task when the task affects a user-facing flow
 
 Valid repair tasks include:
 - Resolve merge conflicts
@@ -196,6 +199,7 @@ The confirmation must include:
 - Known failure or validation target
 - Planned repair tasks
 - Validation commands or checks to run
+- Browser traversal scope and entry points for the repaired flow when Browser Use validation is available
 - Commit mode
 - Timebox and stall rules for this run
 
@@ -236,6 +240,7 @@ If a task works but leaves follow-up quality concerns:
 Visible progress rules:
 - Report progress in the user's language at least every 15 minutes during long runs
 - Report when a task starts, when a task passes validation, when a task is committed, and when a task is blocked
+- When browser traversal runs, report the current iteration number plus page coverage and blockers according to Phase 9
 - If the run is stalled, say exactly what was tried, what failed, and what evidence is still missing
 
 ---
@@ -266,6 +271,15 @@ Validation order:
    - Prefer Browser Use for repaired user-facing flows using the local project URL from `.env`
    - Add `http://` when the URL is missing a scheme
    - Reload after code changes before checking the repaired flow
+   - Traverse the reachable in-scope pages for the repaired flow, not only the first visible page
+   - Start from the confirmed entry points and build a queue of reachable in-scope pages
+   - The default traversal boundary is the approved repaired area only: stay within the same module, route group, or visible task flow; do not fan out into unrelated navigation, pagination, filter combinations, destructive actions, or secondary modules unless the user explicitly included them
+   - Stop traversal when the in-scope queue is exhausted, when the agreed traversal cap is reached, or when further expansion yields no new in-scope pages
+   - Follow internal links, menus, tabs, and index/detail transitions that are directly reachable and relevant to the repaired area
+   - Do not perform destructive actions during traversal unless the user explicitly approved them as part of the repair
+   - For each visited page, report the required evidence fields: current repair iteration, page number or identifier, page label or route, outcome, and blocker or finding when relevant. A localized test-style line with symbols such as `✓` or `✗` is encouraged, but the exact wording is not mandatory
+   - Keep counts for pages discovered, pages visited, pages passed, pages blocked, pages skipped, and total traversal iterations
+   - Treat the traversal output as a lightweight browser scraping report of reachable pages and findings inside the approved scope
    - If Browser Use is unavailable for this run, state that limitation and replace it with the strongest available runtime checks
 
 Important:
@@ -296,6 +310,7 @@ Commit examples:
 
 Commit rules:
 - One commit per completed repair task
+- Create the task commit before moving on to the next independent repair task unless the user approved a different commit strategy
 - Do not mix unrelated code, docs, and translation changes unless they are inseparable for that repair
 - Do not commit unrelated user changes
 - Do not wait for unrelated follow-up cleanup before committing a task that already works
@@ -322,6 +337,9 @@ Final report must include:
 - What changed recently
 - Repair tasks completed
 - Validation executed and results
+- Total repair iterations and per-task attempt counts
+- Browser traversal coverage: entry points, pages discovered, pages visited, pages passed, pages blocked, and pages skipped
+- A concise page-by-page findings report for the reachable pages inspected during the run
 - Commits created
 - Anything not validated and why
 - Remaining blockers
