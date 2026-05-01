@@ -1,11 +1,11 @@
 ---
 name: finish
-description: Use this command when the code is already working and the feature needs to be fully polished and closed out. Runs frontend review, UX review, translation validation, tests, and documentation in sequence. Do NOT use for active development — use /develop for that.
+description: Use this command when the code is already working and the feature needs to be fully polished and closed out. Runs frontend review, UX review, Browser Use validation, translation validation, and documentation in sequence. Do NOT use for active development — use /develop for that.
 ---
 
 # /finish — Feature Completion
 
-Your goal is to take a working feature and make it fully production-ready: polished UI, validated translations, covered tests, and complete documentation.
+Your goal is to take a working feature and make it fully production-ready: polished UI, validated real browser flows, validated translations, and complete documentation.
 
 Assumes code is already clean (standards-compliant, no known backend issues). If that is not the case, run `/review` or `/develop` first.
 
@@ -19,7 +19,7 @@ Ask the user what feature or area to finish. Confirm the affected files and flow
 
 ## Phase 2 — Frontend review
 
-Call the `frontend` agent to review all UI files in scope against `docs/development-guides/coding-standards/tailwind.md`.
+Call the `frontend` agent to review all UI files in scope against `tailwind.md`.
 
 Frontend will produce a report of violations grouped by file and complexity. Present this to the user and ask:
 > "¿Quieres que se implementen estas correcciones?"
@@ -50,12 +50,16 @@ The cycle runs automatically:
 
 ---
 
-## Phase 5 — Stability Check
+## Phase 5 — Browser Validation
 
-If Phase 4 modified files, run only the smallest practical stability checks needed before translation validation.
+If Phase 4 modified files, validate the confirmed user flow with Browser Use before translation validation.
 
-- Re-run the confirmed UI flow
-- Run targeted build or runtime checks when the changed files require them
+- Read the project URL from `.env`, preferring `APP_URL` when available
+- If the URL does not include a scheme, prepend `http://`
+- Open the flow in the Codex in-app browser with Browser Use
+- Reload after code changes before checking the updated flow
+- Confirm the visible flow works, and note any blockers or environment limitations
+- Run targeted build or runtime checks only when the changed files require them in addition to browser validation
 - If a backend or standards issue appears, stop and recommend `/review` or `/develop`
 - Do not run external Code Analysis in this command
 
@@ -74,18 +78,7 @@ Report any missing or unsynced translations. Confirm they are complete across al
 
 ---
 
-## Phase 7 — Tests
-
-Call the `tester` agent to:
-- Check existing test coverage for the finished feature
-- Identify and fill missing tests
-- Validate that all relevant tests pass
-
-Present findings and ask for approval before writing any new tests.
-
----
-
-## Phase 8 — Documentation
+## Phase 7 — Documentation
 
 Call the `documenter` agent to:
 - Identify what changed or was added
@@ -99,8 +92,8 @@ Call the `documenter` agent to:
 Summarize what was completed across all phases:
 - Frontend violations corrected (and any skipped)
 - UX proposals implemented (and any skipped)
+- Browser validation status
 - Translation status
-- Tests created or validated
 - Documentation updated
 - Any open items requiring follow-up
 
@@ -109,5 +102,5 @@ Summarize what was completed across all phases:
 ## Rules
 
 - Never implement anything without user confirmation per phase
-- Run the stability check before translations, tests, and documentation
+- Run Browser Use validation before translations and documentation
 - If any phase surfaces a backend issue, stop and recommend `/review` or `/develop` before continuing

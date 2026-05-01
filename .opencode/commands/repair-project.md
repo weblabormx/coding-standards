@@ -1,6 +1,6 @@
 ---
 name: repair-project
-description: Use this command when a project, branch, or copied implementation stopped working after a merge, Laravel upgrade, Weblabor Base update, dependency update, branch divergence, or copy from another project. It compares against a known-working source, repairs the broken project with minimal fixes, validates functionality with automated and manual checks when available, and can create commits per completed repair task when approved.
+description: Use this command when a project, branch, or copied implementation stopped working after a merge, Laravel upgrade, Weblabor Base update, dependency update, branch divergence, or copy from another project. It compares against a known-working source, repairs the broken project with minimal fixes, validates functionality with focused runtime and Browser Use checks when available, and can create commits per completed repair task when approved.
 ---
 
 # /repair-project - Restore Broken Project
@@ -30,32 +30,27 @@ Common triggers:
 
 ---
 
-## Phase 1 - Test Readiness Check
+## Phase 1 - Validation Readiness Check
 
-Before planning repairs, check whether the project has automated validation available for the affected area.
+Before planning repairs, check whether the project has focused validation available for the affected area.
 
 Inspect, without modifying files:
-- Existing PHPUnit unit or feature tests under `tests/`
-- Tests for the affected models, services, Livewire components, routes, or flows when the failure area is known
-- Browser/E2E tooling such as Laravel Dusk, Playwright, Cypress, Pest browser tests, or equivalent configuration
-- Existing browser/E2E tests for the affected user flow when UI behavior is involved
+- Local project URL in `.env`, preferring `APP_URL`
+- Whether the local server and affected route can be opened in Browser Use
+- Relevant artisan, route, config, or build commands that can prove the broken area
+- Existing browser tooling only as context, not as a required workflow step
 
-If relevant automated tests exist:
-- Use them as the first validation path
-- Prefer reproducing the failure with an existing or targeted test before changing code
+When browser validation is possible:
+- Use Browser Use as the preferred way to reproduce and verify the visible failure
 
-If relevant tests do not exist, tell the user clearly:
+If browser validation is not possible, tell the user clearly:
 
-> No encontre tests automatizados relevantes para validar esta reparacion. Puedo continuar con checks funcionales y comparacion contra la fuente que si funciona, pero la confianza de validacion sera menor.
+> No pude validar este flujo en el navegador con Browser Use porque falta URL local utilizable, servidor levantado, autenticacion disponible, o el entorno necesario. Puedo continuar con checks funcionales, artisan, build y comparacion contra la fuente que si funciona, pero la confianza visual sera menor.
 
-If browser validation would be useful but no Dusk/E2E tooling exists, tell the user clearly:
-
-> No encontre Laravel Dusk ni otra herramienta E2E configurada. Puedo continuar con PHPUnit, artisan, build y comparacion contra la rama o proyecto que si funciona, pero no puedo validar click-by-click en navegador desde este flujo.
-
-When continuing without tests:
+When continuing without browser validation:
 - State that validation confidence is lower
-- Use the strongest available checks: artisan commands, targeted manual reasoning from branch comparison, build, translation checks, and any existing test suite
-- Do not claim the flow is fully validated if no automated or browser validation covered it
+- Use the strongest available checks: artisan commands, targeted manual reasoning from branch comparison, build, and translation checks
+- Do not claim the flow is fully validated if no browser or equivalent runtime validation covered it
 
 ---
 
@@ -79,7 +74,7 @@ Ask only for missing information that materially affects the repair:
    - Large merge
    - Copied code from another project
 4. What failure is known?
-   - Test failure
+   - Validation failure
    - Browser flow failure
    - Login or route failure
    - Livewire failure
@@ -128,7 +123,7 @@ If a known-working branch or project exists, compare against it before guessing.
 When the working source is a branch:
 - Compare current branch against the working branch using non-destructive git commands
 - Review divergent commits and changed files
-- Inspect critical files such as `composer.json`, `composer.lock`, `package.json`, config files, routes, migrations, Livewire components, language files, and tests when relevant
+- Inspect critical files such as `composer.json`, `composer.lock`, `package.json`, config files, routes, migrations, Livewire components, and language files when relevant
 
 When the working source is another project folder:
 - Identify equivalent files and flows
@@ -148,8 +143,7 @@ Comparison rules:
 Reproduce or detect the failure with the smallest safe validation first.
 
 Use targeted checks before broad checks:
-- Specific PHPUnit tests when the failing area is known
-- `php artisan test --filter ...` for narrow behavior
+- Browser Use for the visible flow when the issue is user-facing and the local URL is available
 - `php artisan route:list` for route or controller failures
 - `php artisan config:clear` or `php artisan view:clear` for local cache issues when safe
 - `composer install` when dependency installation is the suspected issue
@@ -168,7 +162,7 @@ Create and maintain a repair checklist. Each checklist item must be a repair tas
 
 For each task, capture:
 - The failure or risk being repaired
-- Evidence from tests, errors, diffs, logs, or branch comparison
+- Evidence from browser validation, errors, diffs, logs, or branch comparison
 - The smallest safe fix
 - The validation that proves the fix worked
 - Whether a commit was created
@@ -179,15 +173,12 @@ Valid repair tasks include:
 - Restore compatibility with the updated Laravel/Weblabor Base version
 - Fix imports, namespaces, signatures, config keys, routes, middleware, policies, casts, enums, traits, or Livewire APIs broken by an update
 - Synchronize required translations directly related to the failure
-- Fix tests that fail because of the update, when the intended behavior is clear
-- Add or update targeted tests for repaired behavior when they directly prove the repair
 - Update project documentation only when the repair changes behavior or prevents recurrence
 
 Invalid repair tasks for this command:
 - Broad code style cleanup
 - Refactor for readability without a failure
 - UX polish
-- General missing-test coverage
 - Reorganizing files without a functional need
 - Updating documentation unrelated to the repair
 
@@ -264,26 +255,23 @@ Validation order:
    - Dependency install when relevant
    - Autoload, config, route, or view sanity checks when relevant
 
-3. **Automated tests**
-   - Run targeted PHPUnit tests for repaired areas when they exist
-   - Add or update targeted tests only when they directly prove repaired behavior and fit the repair scope
-   - Run a broader PHPUnit suite only when the repaired area is already stable and the suite is reasonable to run
-
-4. **Translations**
+3. **Translations**
    - Run `php artisan lang:sync`, `php artisan lang:search`, and a final `php artisan lang:sync` only when translations or user-facing copy were part of the repair
    - Fix missing keys or hardcoded user-facing strings only when directly related to the repair
 
-5. **Frontend/build validation**
+4. **Frontend/build validation**
    - Run `npm run build` only when assets, Blade, Livewire views, CSS, or JS changed
 
-6. **Browser or end-to-end validation**
-   - If browser automation tools or existing browser tests are available, use them for the repaired user flow
-   - If not available, state that limitation and replace it with the strongest available automated checks
+5. **Browser validation**
+   - Prefer Browser Use for repaired user-facing flows using the local project URL from `.env`
+   - Add `http://` when the URL is missing a scheme
+   - Reload after code changes before checking the repaired flow
+   - If Browser Use is unavailable for this run, state that limitation and replace it with the strongest available runtime checks
 
 Important:
 - Repair confidence comes from proving the broken flow works again
 - Do not block runtime validation on analyzer or standards review
-- Do not require new tests when they would materially delay a repair run and existing evidence is sufficient to restore service
+- Do not require extra validation work that materially delays a repair run when existing evidence is already enough to restore service
 
 ---
 
@@ -304,12 +292,11 @@ Commit examples:
 - `fix: resolve Laravel upgrade failures`
 - `fix: align staging config with working branch`
 - `fix: synchronize missing translations`
-- `test: cover repaired reservation flow`
 - `docs: document required repair configuration`
 
 Commit rules:
 - One commit per completed repair task
-- Do not mix unrelated code, docs, tests, and translation changes unless they are inseparable for that repair
+- Do not mix unrelated code, docs, and translation changes unless they are inseparable for that repair
 - Do not commit unrelated user changes
 - Do not wait for unrelated follow-up cleanup before committing a task that already works
 - Do not push unless explicitly requested
@@ -324,7 +311,7 @@ Before finishing:
 1. Run the strongest practical validation set for the repaired scope
 2. Confirm translations if translations were involved
 3. Confirm build if frontend or assets were involved
-4. Confirm targeted tests pass when they were part of the repair
+4. Confirm browser validation or the strongest equivalent runtime validation for repaired user flows
 5. Review final `git status`
 6. List commits created, if any
 7. List blocked tasks, skipped tasks, and follow-up cleanup items separately
@@ -363,10 +350,10 @@ For `control-total`, use `docs/control-total` as the project documentation sourc
 - Compare against the working source when one exists
 - Do not copy blindly from the working source
 - Do not perform general cleanup or broad refactor in this command
-- Do not change product behavior unless the working source, tests, or user confirms that behavior is correct
+- Do not change product behavior unless the working source or user confirms that behavior is correct
 - Stop and ask when the correct behavior is ambiguous
 - Prefer targeted validation early and broader validation after repairs pass
-- Check for relevant tests at the start and warn the user before continuing without them
-- Be explicit when direct browser validation is unavailable
+- Check for browser validation readiness at the start and warn the user before continuing without it
+- Be explicit when direct Browser Use validation is unavailable
 - Never loop forever: stop after the configured attempt limits or when the run is blocked
 - Recommend `/cleanup` for non-blocking cleanup and `/review` for standards work only after repair

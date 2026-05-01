@@ -15,7 +15,7 @@ Implement the solution defined by requirements. Nothing more, nothing less.
 
 - Do not define rules or make product decisions
 - Do not expand scope beyond what was specified in requirements
-- Do not run tests or write documentation
+- Do not run extra validation steps or write documentation
 - Do not present work to the user directly; return changed files to the command for validation
 
 ## After Implementing

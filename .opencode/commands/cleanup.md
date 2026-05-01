@@ -37,10 +37,11 @@ Then start with Task 1.
 - Are there Spanish strings that should be in `lang` files?
 - If the volume is large: split into batches of ~10-15 files and propose a phased plan
 
-### Task 4 — Unit Tests
-- Do tests exist for the main models, Livewire components, and enums?
-- Are existing tests validating real behavior (not just config values)?
-- Report: what exists, what's missing, what looks low-value
+### Task 4 — Browser Flow Validation
+- Does the project define a local URL in `.env`, preferably `APP_URL`?
+- Can the main user flows be opened with Browser Use in the Codex in-app browser?
+- Are there broken screens, blocked actions, missing assets, or visible regressions in the main flows?
+- Report: what was validated, what is blocked, and what environment detail is missing
 
 ---
 
@@ -48,7 +49,7 @@ Then start with Task 1.
 
 For each task:
 
-1. **Analyze** — inspect the relevant area against `docs/development-guides/coding-standards/` and local project conventions. Do not run external Code Analysis in this command; if analyzer-driven review is needed, hand off to `/review`
+1. **Analyze** — inspect the relevant area against the repository root standards files and guides under `guides/`, plus local project conventions. Do not run external Code Analysis in this command; if analyzer-driven review is needed, hand off to `/review`
 2. **Report** findings clearly:
    - What's correct
    - What's wrong, with specific file references
@@ -79,7 +80,7 @@ After all tasks, summarize:
 - What still needs attention
 
 Then ask:
-> "¿Te gustaría continuar con /review para profundizar en algún módulo, o con /test para completar la cobertura de tests?"
+> "¿Te gustaría continuar con /review para profundizar en algún módulo, o con /finish para pulir flujos visibles y documentación?"
 
 ---
 
@@ -87,7 +88,7 @@ Then ask:
 
 When the user chooses "Generar prompt para Copilot", produce a self-contained prompt that includes:
 - Full context: which files, what's wrong, what the correct version looks like
-- Step-by-step instructions referencing the coding standards' rules on `docs/development-guides/coding-standards`
+- Step-by-step instructions referencing the coding standards and guides in this repository
 - Expected outcome: what should be true when the task is done
 - Edge cases to watch out for
 

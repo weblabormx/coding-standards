@@ -9,7 +9,7 @@ Do NOT write implementation code during this command.
 
 Your goal is to create a complete feature analysis document in Spanish, focused on the minimum indispensable scope for the real use case.
 
-Always follow `docs/development-guides/coding-standards/feature-analysis.md`.
+Always follow `guides/feature-analysis.md`.
 
 ---
 
@@ -62,7 +62,7 @@ The agent must review:
 
 - Relevant code
 - Relevant documentation under `docs/{project}`
-- `docs/development-guides/coding-standards/feature-analysis.md`
+- `guides/feature-analysis.md`
 - Previous analysis documents under `docs/{project}/analysis/` when the folder exists
 - Similar historical feature documents under the standard analysis folder
 
@@ -288,7 +288,7 @@ When the user corrects format, structure, naming, level of detail, analysis beha
 1. Decide whether the correction should become a reusable rule.
 2. Show the exact rule that would be added or changed.
 3. State the exact file that would be modified:
-   - Document format or content style: `docs/development-guides/coding-standards/feature-analysis.md`
+   - Document format or content style: `guides/feature-analysis.md`
    - Command flow or confirmation behavior: `.opencode/commands/analyze-feature.md`
    - Analysis decision behavior: `.opencode/agents/feature-analyst.md`
 4. Ask for explicit confirmation unless the user has already clearly asked to update the command/standard behavior in this conversation.
@@ -296,13 +296,13 @@ When the user corrects format, structure, naming, level of detail, analysis beha
 
 Never save learning into any file without showing or summarizing the exact change, unless the user has explicitly asked to apply that behavior change now.
 
-When changing standards, commands, agents, or workflow documentation, fix the root rule instead of adding a narrow symptom-specific ban. Before saving the change, call `workflow-reviewer` to review the proposed change. The review must cover at least documentation clarity and execution/testability, and technical/workflow consistency when relevant. The change should explain the general behavior expected next time, where it applies, and what it should prevent.
+When changing standards, commands, agents, or workflow documentation, fix the root rule instead of adding a narrow symptom-specific ban. Before saving the change, call `workflow-reviewer` to review the proposed change. The review must cover at least documentation clarity and execution clarity, and technical/workflow consistency when relevant. The change should explain the general behavior expected next time, where it applies, and what it should prevent.
 
 ---
 
 ## Output Document Rules
 
-- The final document must follow `docs/development-guides/coding-standards/feature-analysis.md`.
+- The final document must follow `guides/feature-analysis.md`.
 - Do not add sections that are not in the standard by default.
 - Keep each characteristic proportional to the work. A small UI/data change should not have a long architectural essay.
 - One characteristic must describe one cohesive implementation responsibility. It can include several small steps when they affect the same component/screen/data concept and are reviewed together.

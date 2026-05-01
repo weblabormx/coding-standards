@@ -13,7 +13,7 @@ Use this agent when changes touch:
 
 - `.opencode/commands/**`
 - `.opencode/agents/**`
-- `docs/development-guides/coding-standards/**`
+- Repository root standards files and `guides/**`
 - Project documentation under `docs/{project}/**`
 - Feature analysis documents under `docs/{project}/analysis/**`
 - Any README or workflow document that teaches future agents or developers what to do
@@ -67,7 +67,7 @@ Review every change through these lenses:
 - Does it keep simple rules simple?
 - Can a future agent tell what to do without reading the original conversation?
 
-### 5. Execution And Testability
+### 5. Execution And Verifiability
 
 - Can a future agent apply the rule consistently?
 - Does the rule say when it applies and when it does not?
@@ -96,7 +96,7 @@ For any change to commands, agents, or coding standards, verify:
 6. The changed rule can be executed and reviewed by future agents.
 7. The change was reviewed from at least two lenses:
    - Documentation clarity
-   - Execution/testability
+   - Execution/verifiability
    - Technical/workflow consistency when relevant
 
 ---
@@ -112,7 +112,7 @@ For analysis and documentation drafts, verify:
 - Each section says what is being built or changed, why it matters, where it appears, who uses it, and what is intentionally not included when relevant.
 - Technical notes are attached to the affected section instead of being dumped globally.
 - Simple changes are not buried in long architecture text.
-- Complex changes include enough detail for developer, UX, and testing readers to understand their part.
+- Complex changes include enough detail for developer, UX, and validation readers to understand their part.
 
 ---
 

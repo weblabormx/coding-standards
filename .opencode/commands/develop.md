@@ -34,11 +34,11 @@ After confirmation, call the `developer` agent to implement the confirmed scope.
 The developer must:
 
 - Modify only files required by the confirmed scope.
-- Follow existing codebase patterns and `docs/development-guides/coding-standards/`.
+- Follow existing codebase patterns and the repository root standards files plus guides under `guides/`.
 - Return the list of files it created or modified.
 - Apply any later Code Analysis findings sent back by this command.
 
-Do not run tests or write documentation as part of this command unless the confirmed scope explicitly requires changing tests or documentation files.
+Do not write documentation as part of this command unless the confirmed scope explicitly requires changing documentation files.
 
 ---
 
@@ -67,7 +67,15 @@ Validation rules:
 - If 10 minutes pass without a file reaching a passing analyzer result, stop the current analyzer loop, clear the current validation attempt, and retry the analyzer flow once from the current changed-file queue.
 - If the retry also goes 10 minutes without a passing file, stop and report the blocker instead of continuing indefinitely.
 
-If `../ia-analyzer` does not exist, skip external Code Analysis in this command and use focused runtime, artisan, build, or test validation that matches the confirmed scope.
+If `../ia-analyzer` does not exist, skip external Code Analysis in this command and use focused runtime, artisan, build, or Browser Use validation that matches the confirmed scope.
+
+When the confirmed scope affects a real user flow in a local project UI:
+
+- Prefer Browser Use in the Codex in-app browser for functional validation.
+- Read the project URL from `.env`, preferring `APP_URL` when available.
+- If the URL does not include a scheme, prepend `http://`.
+- Reload the page after code changes before validating the updated flow.
+- Report clearly when browser validation was not possible because the URL, server, auth state, or required environment was unavailable.
 
 Do not expose private chain-of-thought. The visible trace must show analyzer results or fallback validations, fixes applied, commands or tools used, paths, and final result.
 
@@ -83,7 +91,7 @@ Once validation passes, present the final result to the user:
 - Translation files updated or synchronized (if applicable)
 - Open questions or blockers (if any)
 
-Stop here. Do not run tests or documentation as part of this command unless explicitly requested or already included in the confirmed scope.
+Stop here. Do not run extra documentation work as part of this command unless explicitly requested or already included in the confirmed scope.
 
 ---
 
@@ -92,7 +100,8 @@ Stop here. Do not run tests or documentation as part of this command unless expl
 - Never skip the analyst step, even for small changes
 - Never implement without user confirmation after Phase 2
 - Keep changes minimal — only what was defined in requirements
-- Do not run tests or write documentation in this flow unless explicitly requested or included in the confirmed scope
+- Do not write documentation in this flow unless explicitly requested or included in the confirmed scope
 - If `../ia-analyzer` exists, run external Code Analysis for modified code or implementation files in this command
 - If `../ia-analyzer` does not exist, use focused validation that matches the confirmed scope
+- Prefer Browser Use for validating local user-facing flows
 - External Code Analysis belongs in `/develop` and `/review`

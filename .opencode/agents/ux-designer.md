@@ -58,8 +58,8 @@ If after **3 cycles** issues remain unresolved, stop and escalate to the user wi
 ## Rule management
 
 When you detect a recurring UX pattern that should be standardized:
-1. Identify whether `docs/development-guides/coding-standards/tailwind.md` already covers it
+1. Identify whether `tailwind.md` already covers it
 2. If not covered → propose the new rule with a concrete example
-3. If the correct rule is obvious → ask the user for confirmation, then add it to `docs/development-guides/coding-standards/tailwind.md`
+3. If the correct rule is obvious → ask the user for confirmation, then add it to `tailwind.md`
 4. If uncertain → present the proposal and wait for the user to decide
 5. Never remove an existing rule without explicit user confirmation

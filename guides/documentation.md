@@ -1,5 +1,7 @@
 # Documentation
 
+This guide defines how project documentation should be organized and maintained.
+
 Any new feature, config option, or architectural component **must** include documentation in `/docs/{project}`.
 
 - All docs in `/docs/{project-name}` using **kebab-case** folder names

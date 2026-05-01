@@ -1,6 +1,6 @@
 ---
 name: document
-description: Use this command when the user wants to create or update project documentation for an implemented feature, architecture decision, configuration change, or developer-facing workflow. Do NOT use it for implementation or test execution.
+description: Use this command when the user wants to create or update project documentation for an implemented feature, architecture decision, configuration change, or developer-facing workflow. Do NOT use it for implementation or validation execution.
 ---
 
 # /document — Documentation

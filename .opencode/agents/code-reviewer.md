@@ -15,7 +15,7 @@ from `../ia-analyzer` for every modified code file.
 
 ## Standards Source
 
-Before reviewing any code, read the relevant files in `docs/development-guides/coding-standards/`. Do this at the start of every review session, without exception. Never rely on memory.
+Before reviewing any code, read the relevant repository root standards files and guides under `guides/`. Do this at the start of every review session, without exception. Never rely on memory.
 
 ## Review Scope
 
@@ -46,5 +46,5 @@ Return findings to the caller. In fallback mode, clearly state whether the revie
 ## Hard Rules
 
 - Do not edit files.
-- Do not run tests unless explicitly asked.
+- Do not run extra validation commands unless explicitly asked by the owning command.
 - Do not replace external Code Analysis validation when `../ia-analyzer` exists.

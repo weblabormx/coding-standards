@@ -8,7 +8,7 @@ The goal is to keep one shared workflow, one shared standards source, and a sing
 
 ## Source of Truth
 
-- `docs/development-guides/coding-standards/`: coding standards for all assistants and developers
+- repository root standards files such as `php.md` and `tailwind.md`, plus guide files under `guides/`: shared standards and workflows for assistants and developers
 - `OPENCODE.md`: main workflow and assistant behavior rules for the project
 - `.opencode/commands/*.md`: canonical command definitions — each file contains the full workflow for that command
 - `.opencode/agents/*.md`: agent role definitions — each file defines a specialist's responsibilities and behavior
@@ -64,7 +64,7 @@ Commands orchestrate agents. Each agent is a specialist with a narrow, well-defi
 
 | Agent | Responsibility |
 |---|---|
-| `frontend` | Implements UI changes in Blade, Livewire HTML, and resources following `docs/development-guides/coding-standards/tailwind.md`. Always calls `ux-designer` when done |
+| `frontend` | Implements UI changes in Blade, Livewire HTML, and resources following `tailwind.md`. Always calls `ux-designer` when done |
 | `ux-designer` | Reviews UI for user experience: navigation, actions, clarity, hierarchy, consistency. Cycles with `frontend`. Can propose new Tailwind/UX rules |
 
 ### Specialists (called directly by commands)
@@ -72,7 +72,6 @@ Commands orchestrate agents. Each agent is a specialist with a narrow, well-defi
 | Agent | Responsibility |
 |---|---|
 | `feature-analyst` | Analyzes feature/module ideas, reviews code/docs/previous analyses, and produces Spanish minimum-scope feature analysis documents |
-| `tester` | Proposes approved user-facing use cases, then writes and validates targeted PHPUnit or Laravel Dusk tests |
 | `documenter` | Writes and updates project documentation in `docs/{project}` |
 
 ### Role chains
@@ -91,9 +90,6 @@ Commands orchestrate agents. Each agent is a specialist with a narrow, well-defi
   frontend → ux-designer ↔ cycle → if ../ia-analyzer exists: Code Analysis for modified UI/code files
   (after backend is already clean)
 
-/test:
-  tester
-
 /document:
   documenter
 
@@ -111,17 +107,16 @@ Commands live in `.opencode/commands/` and are shared across all supported assis
 
 | Command | Description | File |
 |---|---|---|
-| `/plan` | Exhaustive planning session via analyst. Produces a complete implementation prompt. | [plan.md](../.opencode/commands/plan.md) |
-| `/develop` | Full implementation flow with Code Analysis when `../ia-analyzer` exists, otherwise the previous code-reviewer/tech-lead fallback | [develop.md](../.opencode/commands/develop.md) |
-| `/review` | Run Code Analysis when `../ia-analyzer` exists, otherwise internal code-reviewer review, and optionally refactor until validation passes | [review.md](../.opencode/commands/review.md) |
-| `/repair-project` | Repair a broken branch/project after a merge, Laravel upgrade, base update, dependency update, or branch divergence by comparing against a known-working source, validating fixes, and optionally committing each repair task. | [repair-project.md](../.opencode/commands/repair-project.md) |
-| `/finish` | Final polish after code is working: frontend review, UX review, optional Code Analysis when available, translations, tests, docs | [finish.md](../.opencode/commands/finish.md) |
-| `/test` | Inspect, create, and validate automated tests | [test.md](../.opencode/commands/test.md) |
-| `/document` | Write or update project documentation in the correct docs folder | [document.md](../.opencode/commands/document.md) |
-| `/analyze-feature` | Analyze a feature/module request, create the analysis document, and validate with Document Analysis when `../ia-analyzer` exists or internal fallback otherwise | [analyze-feature.md](../.opencode/commands/analyze-feature.md) |
-| `/add-rules` | Fix a bug and update coding standards to prevent recurrence | [add-rules.md](../.opencode/commands/add-rules.md) |
-| `/quote` | Estimate project scope at a high level | [quote.md](../.opencode/commands/quote.md) |
-| `/cleanup` | Run project-wide cleanup, refactor, and standards health checks after the project already works | [cleanup.md](../.opencode/commands/cleanup.md) |
+| `/plan` | Exhaustive planning session via analyst. Produces a complete implementation prompt. | [plan.md](.opencode/commands/plan.md) |
+| `/develop` | Full implementation flow with Code Analysis when `../ia-analyzer` exists, otherwise the previous code-reviewer/tech-lead fallback | [develop.md](.opencode/commands/develop.md) |
+| `/review` | Run Code Analysis when `../ia-analyzer` exists, otherwise internal code-reviewer review, and optionally refactor until validation passes | [review.md](.opencode/commands/review.md) |
+| `/repair-project` | Repair a broken branch/project after a merge, Laravel upgrade, base update, dependency update, or branch divergence by comparing against a known-working source, validating fixes, and optionally committing each repair task. | [repair-project.md](.opencode/commands/repair-project.md) |
+| `/finish` | Final polish after code is working: frontend review, UX review, Browser Use validation, translations, docs | [finish.md](.opencode/commands/finish.md) |
+| `/document` | Write or update project documentation in the correct docs folder | [document.md](.opencode/commands/document.md) |
+| `/analyze-feature` | Analyze a feature/module request, create the analysis document, and validate with Document Analysis when `../ia-analyzer` exists or internal fallback otherwise | [analyze-feature.md](.opencode/commands/analyze-feature.md) |
+| `/add-rules` | Fix a bug and update coding standards to prevent recurrence | [add-rules.md](.opencode/commands/add-rules.md) |
+| `/quote` | Estimate project scope at a high level | [quote.md](.opencode/commands/quote.md) |
+| `/cleanup` | Run project-wide cleanup, refactor, and standards health checks after the project already works | [cleanup.md](.opencode/commands/cleanup.md) |
 
 ---
 
@@ -180,7 +175,7 @@ When updating assistant workflow in this repository:
 1. Update the command file in `.opencode/commands/` that defines the behavior
 2. Update the agent file in `.opencode/agents/` if the role's responsibilities changed
 3. Update `OPENCODE.md` if the overall workflow or process changes
-4. Update this documentation if the command list, agent list, or installation process changed
+4. Update this documentation if the command list, agent list, browser-validation workflow, or installation process changed
 5. Keep references in `README.md` and repository docs in sync
 
 If the same instruction exists in more than one place, prefer reducing duplication and documenting which file is authoritative.

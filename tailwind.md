@@ -136,5 +136,5 @@ If the same class appears twice, remove the duplicate. If you see conflicting cl
 **All views must work on mobile.** Use responsive prefixes (`sm:`, `md:`, `lg:`) instead of hiding or ignoring mobile layouts.
 
 - Do not use fixed widths (`w-96`) in contexts where the layout must be responsive
-- Test that text, buttons, and forms are usable at small screen sizes
+- Verify that text, buttons, and forms are usable at small screen sizes
 - Prefer `flex-col` on mobile and `flex-row` on larger breakpoints when stacking is needed

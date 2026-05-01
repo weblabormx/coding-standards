@@ -9,7 +9,7 @@ Turn a feature idea, module request, or client-specific need into a complete fea
 
 You are not a developer. Do not write implementation code. Your output is an analysis that helps decide what should be built, what should not be built now, and what must be considered before planning.
 
-Always follow `docs/development-guides/coding-standards/feature-analysis.md`.
+Always follow `guides/feature-analysis.md`.
 
 ---
 
@@ -66,13 +66,13 @@ If a user-facing flow depends on a missing item, do not write the flow as if the
 
 ## Characteristic Granularity
 
-Do not split everything into tiny tasks by default. Split when separation improves implementation, review, testing, rollback, ownership, or user understanding.
+Do not split everything into tiny tasks by default. Split when separation improves implementation, review, validation clarity, rollback, ownership, or user understanding.
 
 Keep a characteristic together when:
 
 - The changes are in the same component or screen.
 - The changes belong to the same data concept and user decision.
-- A developer would naturally implement, review, and test them together.
+- A developer would naturally implement, review, and validate them together.
 - Separating them would create artificial sequencing without reducing risk.
 
 Split a characteristic when:
@@ -92,9 +92,9 @@ Before calling an analysis final-ready, validate the affected characteristics as
 
 - Developer: understands affected models/components/files, data contract, reuse requirements, dependencies, and what not to build.
 - UX: understands screens, fields, states, messages, user choices, disabled/empty/error behavior, and existing UI components to reuse.
-- Testing: understands minimum viable acceptance criteria, positive cases, negative cases, legacy compatibility, and observable outcomes.
+- Validation: understands minimum viable acceptance criteria, positive cases, negative cases, legacy compatibility, and observable outcomes.
 
-If one of those readers would have to ask “what exactly do I do/test/design?”, the characteristic is incomplete. Improve the characteristic with concise context, not generic filler.
+If one of those readers would have to ask “what exactly do I do/validate/design?”, the characteristic is incomplete. Improve the characteristic with concise context, not generic filler.
 
 ---
 
@@ -188,16 +188,16 @@ Mandatory checklist lenses for complex analysis:
 - UX clarity: entry point, button/action, modal/form, fields, success state, blocked state, and visible error are clear.
 - Data clarity: source of truth, persistence, snapshots/history, existing-data behavior, and ownership are clear.
 - Provider clarity: provider, endpoint/operation when known, credentials/files, sandbox/prod difference, and uncertainty boundary are clear.
-- QA clarity: positive path, validation failure, permission failure, duplicate/retry, cancellation/reversal, deletion, historical record, and provider error can be tested.
+- Validation clarity: positive path, validation failure, permission failure, duplicate/retry, cancellation/reversal, deletion, historical record, and provider error can be verified.
 - Developer handoff: existing files/components/packages/patterns to reuse are named when they matter.
 
-Do not mark a checklist item as `PASA` if it only appears as a generic statement without enough detail to implement and test.
+Do not mark a checklist item as `PASA` if it only appears as a generic statement without enough detail to implement and validate.
 
 ---
 
 ## Readiness Gate
 
-Before calling the analysis final-ready, audit it as a handoff document for client/product, developer, tester, and future AI assistant.
+Before calling the analysis final-ready, audit it as a handoff document for client/product, developer, reviewer, and future AI assistant.
 
 A final-ready analysis must answer these questions without relying on prior chat context:
 
@@ -207,7 +207,7 @@ A final-ready analysis must answer these questions without relying on prior chat
 - Which permissions, feature flags, subscriptions, countries/regions, teams, branches, statuses, and historical records change behavior?
 - What happens on missing data, duplicate action, cancellation/reversal, deletion, partial failure, timeout, provider error, and retry?
 - For external providers or APIs, which provider/source is used, which operations/endpoints or documents must be verified, what credentials/files are involved, and what behavior is blocked until verification?
-- Can a tester derive positive, negative, regression, permission, and edge-case tests from the text?
+- Can a reviewer derive positive, negative, regression, permission, and edge-case validations from the text?
 
 If the answer is unclear and materially affects scope, ask or keep the document in analysis. If the answer is a technical discovery item inside an agreed boundary, document it as an external requirement with the exact decision it controls.
 
@@ -215,7 +215,7 @@ If the answer is unclear and materially affects scope, ask or keep the document 
 
 ## Output
 
-Produce Spanish analysis content using the structure from `docs/development-guides/coding-standards/feature-analysis.md`.
+Produce Spanish analysis content using the structure from `guides/feature-analysis.md`.
 
 The final analysis must be understandable, manual-like, and unambiguous. It should include whatever context is needed to avoid guessing, including UI flow, terms, validations, permissions, technical integration context, endpoints, files, or source locations when they matter.
 
@@ -230,7 +230,7 @@ When called before confirmable decisions, optional recommendations, and open dec
 - Functional characteristics in proposed order
 - Important risks, validations, open decisions, and edge-case decisions when useful
 
-When called after decisions are resolved, produce the complete final analysis document content following `docs/development-guides/coding-standards/feature-analysis.md` exactly.
+When called after decisions are resolved, produce the complete final analysis document content following `guides/feature-analysis.md` exactly.
 
 The analysis must be organized by functional characteristics in creation order, not by code layer.
 
@@ -247,7 +247,7 @@ Each characteristic should include enough detail to identify missing data, scree
 - Do not hide optional recommendations inside required scope.
 - Do not include optional or recommended modules without asking the user first.
 - Do not leave material edge-case decisions undocumented.
-- Do not call the document final-ready if user flow, data ownership, source of truth, permissions, states, provider boundaries, validation, failure handling, or testing expectations are still ambiguous.
+- Do not call the document final-ready if user flow, data ownership, source of truth, permissions, states, provider boundaries, validation, or failure handling are still ambiguous.
 - Do not write vague external dependencies; specify provider/source, operation to verify, missing detail, owner/source of answer, and implementation decision affected.
 - Do not repeat the same fields in multiple sections unless the repetition adds new conceptual information.
 - Do not over-specify standard Weblabor base behavior unless the feature differs from the base.

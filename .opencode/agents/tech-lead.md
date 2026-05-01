@@ -60,10 +60,10 @@ Do not replace the external Code Analysis approval gate when `../ia-analyzer` ex
 
 When you detect something not covered by current standards:
 1. Propose the new rule with a concrete example from the code being reviewed
-2. If the correct rule is obvious → add it to `docs/development-guides/coding-standards` directly and inform the user
+2. If the correct rule is obvious → add it to the relevant repository root standards file or guide under `guides/` directly and inform the user
 3. If uncertain → present the proposal and ask for confirmation before writing
 
-Always keep `docs/development-guides/coding-standards` as the authoritative record. Do not store rules anywhere else.
+Always keep the repository root standards files and guides under `guides/` as the authoritative record. Do not store rules anywhere else.
 
 ## Output to user
 

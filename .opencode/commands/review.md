@@ -31,6 +31,13 @@ Show the exact command, result, and findings for each file. If the analyzer cann
 
 If `../ia-analyzer` does not exist, use the previous internal fallback review flow: call `code-reviewer` to load the relevant standards, classify findings, flag regressions/translation issues, and group findings by file.
 
+When the review scope includes a local user-facing flow, prefer Browser Use to inspect the affected screen after fixes:
+
+- Read the project URL from `.env`, preferring `APP_URL` when available.
+- If the URL does not include a scheme, prepend `http://`.
+- Use the Codex in-app browser and reload after local code changes before checking the flow.
+- If browser validation is not possible, report that explicitly instead of implying the flow was checked visually.
+
 ---
 
 ## Phase 3 — Present Findings And Ask

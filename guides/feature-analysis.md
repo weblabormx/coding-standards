@@ -1,8 +1,8 @@
 # Feature Analysis
 
-This standard explains what feature analysis documents are for, how they are organized, and what information they should contain.
+This guide explains what feature analysis documents are for, how they are organized, and what information they should contain.
 
-It is a documentation standard for humans and AI assistants. It should describe the expected document, not the internal workflow of a command or agent.
+It is a documentation guide for humans and AI assistants. It should describe the expected document, not the internal workflow of a command or agent.
 
 ---
 
@@ -145,11 +145,11 @@ The feature description should include the details needed to avoid ambiguity: me
 
 Do not present a screen, menu, setting, field, button, action, route, permission, feature flag, subscription module, status, report, workflow, data source, provider operation, configuration key, file, model, table, command, or job as already available unless it exists in the repository or documentation. If a referenced item does not exist yet, the document must clearly make it part of a current characteristic, cite the previous analysis document where it is already planned, or label it as a limitation, external requirement, uncertainty, or blocker.
 
-Each characteristic should be clear for three readers: the client or product owner must understand what will be visible and what outcome it enables; the developer must understand the relevant technical context when the implementation is not obvious; and the tester must understand the minimum flows and validations to verify.
+Each characteristic should be clear for three readers: the client or product owner must understand what will be visible and what outcome it enables; the developer must understand the relevant technical context when the implementation is not obvious; and the reviewer must understand the minimum flows and validations to verify.
 
-When technical context is needed to make the analysis actionable, include it in clearly named technical subsections so non-technical readers can skip it. Useful subsection names include `Notas de desarrollo`, `Decision de implementacion`, `Requisitos externos`, `Checks de claridad para desarrollo`, and `Checks de testing`.
+When technical context is needed to make the analysis actionable, include it in clearly named technical subsections so non-technical readers can skip it. Useful subsection names include `Notas de desarrollo`, `Decision de implementacion`, `Requisitos externos`, `Checks de claridad para desarrollo`, and `Checks de validacion funcional`.
 
-Technical subsections may include table names, columns, JSON paths, commands, endpoints, headers, payload notes, storage decisions, adapters, jobs, locks, transactions, imports, seeders, file paths, or testing checks when those details are required to avoid implementation ambiguity. They should support the functional analysis, not replace the user-facing description of the characteristic.
+Technical subsections may include table names, columns, JSON paths, commands, endpoints, headers, payload notes, storage decisions, adapters, jobs, locks, transactions, imports, seeders, file paths, or functional validation checks when those details are required to avoid implementation ambiguity. They should support the functional analysis, not replace the user-facing description of the characteristic.
 
 Do not put dense implementation detail in `Objetivo`, `Contexto y uso esperado`, `Caso de uso principal`, `Alcance minimo indispensable`, the opening description of a characteristic, or the first lines of the document. Those areas must remain readable as product analysis for the client or product owner.
 
@@ -236,7 +236,7 @@ This rule evaluates only the text of the analysis document. Do not fail it for e
 
 **Required sections**
 
-The document must include useful `Objetivo`, `Contexto y uso esperado`, `Caso de uso principal`, `Alcance minimo indispensable`, and `Caracteristicas` sections. `Limitantes` may be omitted only when there are no relevant limitations to document. Technical sections such as `Notas de desarrollo`, `Decision de implementacion`, `Requisitos externos`, `Checks de claridad para desarrollo`, or `Checks de testing` are optional and may appear inside characteristics when needed. A section exists only if it adds meaningful content; placeholders, empty text, or repeated title text should fail.
+The document must include useful `Objetivo`, `Contexto y uso esperado`, `Caso de uso principal`, `Alcance minimo indispensable`, and `Caracteristicas` sections. `Limitantes` may be omitted only when there are no relevant limitations to document. Technical sections such as `Notas de desarrollo`, `Decision de implementacion`, `Requisitos externos`, `Checks de claridad para desarrollo`, or `Checks de validacion funcional` are optional and may appear inside characteristics when needed. A section exists only if it adds meaningful content; placeholders, empty text, or repeated title text should fail.
 
 #### Business Context and Main Use Case
 

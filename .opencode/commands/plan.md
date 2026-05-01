@@ -30,7 +30,7 @@ With the full context from Phase 1, validate the implementation approach piece b
 - Cover everything relevant: Livewire components, Laravel Front resources, models, traits, services, inputs, routes
 - Call out how each edge case is handled
 - Flag hidden steps the user may not have considered (observers that would fire, related models that need updating, etc.)
-- Always follow `docs/development-guides/coding-standards` — favor simple and understandable over clever
+- Always follow the repository root standards files and guides under `guides/` — favor simple and understandable over clever
 - If something already exists that covers part of the need, reuse it
 
 When the user corrects a section, adjust and re-confirm only that section — don't re-propose everything.
@@ -51,13 +51,13 @@ Once all sections are approved:
    - Hidden steps and side effects
    - Relevant code references when needed
    - Everything a developer needs without asking further questions
-5. Ask whether the user also wants derived prompts for `/review`, `/test`, or `/document`
+5. Ask whether the user also wants derived prompts for `/review`, `/finish`, or `/document`
 
 ---
 
 ## Rules
 
 - Never write or modify code during this command
-- Always follow `docs/development-guides/coding-standards` in every proposal
+- Always follow the repository root standards files and guides under `guides/` in every proposal
 - Favor simple implementations over clever ones
 - Reuse what already exists in the codebase
