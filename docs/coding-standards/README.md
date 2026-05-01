@@ -14,13 +14,13 @@
 | [Laravel Migrations](laravel-migrations.md) | Migration foreign key behavior |
 | [Laravel Notifications](laravel-notifications.md) | Notification base class, required methods, channels |
 | [Laravel Policies](laravel-policies.md) | Policy location, BasePolicy usage, observer pairing |
-| [Models](models.md) | Laravel models, relationships, casts, enums, domain logic |
+| [Models](laravel-models.md) | Laravel models, relationships, casts, enums, domain logic |
 | [Laravel Observers](laravel-observers.md) | Observer ownership, event ordering, side effects |
 | [Laravel Traits](laravel-traits.md) | Trait reuse, trait organization, trait self-containment |
 | [Services](services.md) | Service responsibilities, read-only model access, call patterns |
 | [Livewire](livewire.md) | Livewire components and validation rules |
-| [Blade](blade.md) | Blade templates, frontend view rules, custom inputs |
+| [Blade](laravel-blade.md) | Blade templates, frontend view rules, custom inputs |
 | [Testing](testing.md) | Test philosophy, location, and isolation |
 | [Documentation](documentation.md) | Docs standards and dead code |
-| [Feature Analysis](feature-analysis.md) | Feature analysis document format and content style |
+| [Feature Analysis](../feature-analysis-guide.md) | Feature analysis document format and content style |
 | [Tailwind CSS](tailwind.md) | Colors, dark mode, hover states, cursor, nesting, responsive design |
