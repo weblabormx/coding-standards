@@ -1,6 +1,6 @@
 ---
 name: add-rules
-description: Use this command when the user reports a bug, incorrect AI output, or a missing standard and wants the fix to improve coding standards too. Trigger it when the issue should first be checked against the repository root standards files and guides under `guides/`, then either reinforce an existing rule or create a new one if no rule covers it.
+description: Use this command when the user reports a bug, incorrect AI output, or a missing standard and wants the fix to improve coding standards too. Trigger it when the issue should first be checked against the standards under `coding_standards/` and guides under `guides/`, then either reinforce an existing rule or create a new one if no rule covers it.
 ---
 
 # /add-rules — Fix And Harden Standards
@@ -51,9 +51,9 @@ Do not treat the code fix as complete until the reported issue is functionally v
 
 ## Phase 4 — Update Standards
 
-After code validation passes, update the relevant repository root standards file or guide under `guides/` with the confirmed rule.
+After code validation passes, update the relevant standard under `coding_standards/` or guide under `guides/` with the confirmed rule.
 
-If the change affects shared workflow guidance, update `ai-assistants.md` and `OPENCODE.md` when applicable.
+If the change affects shared workflow guidance, update `guides/ai-assistants.md` and `OPENCODE.md` when applicable.
 
 ---
 

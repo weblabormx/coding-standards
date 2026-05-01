@@ -19,7 +19,7 @@ Ask the user what feature or area to finish. Confirm the affected files and flow
 
 ## Phase 2 — Frontend review
 
-Call the `frontend` agent to review all UI files in scope against `tailwind.md`.
+Call the `frontend` agent to review all UI files in scope against `coding_standards/tailwind.md`.
 
 Frontend will produce a report of violations grouped by file and complexity. Present this to the user and ask:
 > "¿Quieres que se implementen estas correcciones?"

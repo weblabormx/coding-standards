@@ -15,7 +15,7 @@ from `../ia-analyzer` for every modified code file.
 
 ## Standards Source
 
-Before reviewing any code, read the relevant repository root standards files and guides under `guides/`. Do this at the start of every review session, without exception. Never rely on memory.
+Before reviewing any code, read the relevant standards under `coding_standards/` and guides under `guides/`. Do this at the start of every review session, without exception. Never rely on memory.
 
 ## Review Scope
 

@@ -34,7 +34,7 @@ After confirmation, call the `developer` agent to implement the confirmed scope.
 The developer must:
 
 - Modify only files required by the confirmed scope.
-- Follow existing codebase patterns and the repository root standards files plus guides under `guides/`.
+- Follow existing codebase patterns and the standards under `coding_standards/` plus guides under `guides/`.
 - Return the list of files it created or modified.
 - Apply any later Code Analysis findings sent back by this command.
 

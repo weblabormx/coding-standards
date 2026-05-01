@@ -10,7 +10,7 @@ This repository is the single source of truth for shared coding rules, assistant
 
 | Guide | Description |
 |---|---|
-| [AI Assistants](ai-assistants.md) | Shared workflow, command system, and agent responsibilities |
+| [AI Assistants](guides/ai-assistants.md) | Shared workflow, command system, and agent responsibilities |
 | [Feature Analysis](guides/feature-analysis.md) | How to write and validate feature analysis documents |
 | [Documentation](guides/documentation.md) | How project documentation should be organized and maintained |
 
@@ -18,15 +18,15 @@ This repository is the single source of truth for shared coding rules, assistant
 
 | Section | Description |
 |---|---|
-| [PHP](php.md) | Language, code cleanliness, class declarations |
-| [Laravel Routes](laravel-routes.md) | Route definitions, route file separation, route naming |
-| [Laravel Migrations](laravel-migrations.md) | Migration foreign key behavior |
-| [Laravel Notifications](laravel-notifications.md) | Notification base class, required methods, channels |
-| [Laravel Policies](laravel-policies.md) | Policy location, BasePolicy usage, observer pairing |
-| [Models](laravel-models.md) | Laravel models, relationships, casts, enums, domain logic |
-| [Laravel Observers](laravel-observers.md) | Observer ownership, event ordering, side effects |
-| [Laravel Traits](laravel-traits.md) | Trait reuse, trait organization, trait self-containment |
-| [Services](services.md) | Service responsibilities, read-only model access, call patterns |
-| [Livewire](livewire.md) | Livewire components and validation rules |
-| [Blade](laravel-blade.md) | Blade templates, frontend view rules, custom inputs |
-| [Tailwind CSS](tailwind.md) | Colors, dark mode, hover states, cursor, nesting, responsive design |
+| [PHP](coding_standards/php.md) | Language, code cleanliness, class declarations |
+| [Laravel Routes](coding_standards/laravel-routes.md) | Route definitions, route file separation, route naming |
+| [Laravel Migrations](coding_standards/laravel-migrations.md) | Migration foreign key behavior |
+| [Laravel Notifications](coding_standards/laravel-notifications.md) | Notification base class, required methods, channels |
+| [Laravel Policies](coding_standards/laravel-policies.md) | Policy location, BasePolicy usage, observer pairing |
+| [Models](coding_standards/laravel-models.md) | Laravel models, relationships, casts, enums, domain logic |
+| [Laravel Observers](coding_standards/laravel-observers.md) | Observer ownership, event ordering, side effects |
+| [Laravel Traits](coding_standards/laravel-traits.md) | Trait reuse, trait organization, trait self-containment |
+| [Services](coding_standards/services.md) | Service responsibilities, read-only model access, call patterns |
+| [Livewire](coding_standards/livewire.md) | Livewire components and validation rules |
+| [Blade](coding_standards/laravel-blade.md) | Blade templates, frontend view rules, custom inputs |
+| [Tailwind CSS](coding_standards/tailwind.md) | Colors, dark mode, hover states, cursor, nesting, responsive design |

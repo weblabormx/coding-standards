@@ -8,7 +8,7 @@ The goal is to keep one shared workflow, one shared standards source, and a sing
 
 ## Source of Truth
 
-- repository root standards files such as `php.md` and `tailwind.md`, plus guide files under `guides/`: shared standards and workflows for assistants and developers
+- standards files under `coding_standards/`, plus guide files under `guides/`: shared standards and workflows for assistants and developers
 - `OPENCODE.md`: main workflow and assistant behavior rules for the project
 - `.opencode/commands/*.md`: canonical command definitions — each file contains the full workflow for that command
 - `.opencode/agents/*.md`: agent role definitions — each file defines a specialist's responsibilities and behavior
@@ -64,7 +64,7 @@ Commands orchestrate agents. Each agent is a specialist with a narrow, well-defi
 
 | Agent | Responsibility |
 |---|---|
-| `frontend` | Implements UI changes in Blade, Livewire HTML, and resources following `tailwind.md`. Always calls `ux-designer` when done |
+| `frontend` | Implements UI changes in Blade, Livewire HTML, and resources following `coding_standards/tailwind.md`. Always calls `ux-designer` when done |
 | `ux-designer` | Reviews UI for user experience: navigation, actions, clarity, hierarchy, consistency. Cycles with `frontend`. Can propose new Tailwind/UX rules |
 
 ### Specialists (called directly by commands)

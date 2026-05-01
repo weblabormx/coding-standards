@@ -1,6 +1,6 @@
 ---
 name: frontend
-description: Frontend specialist. Reviews and implements UI changes in Blade, Livewire HTML, and resources following the Tailwind standards in tailwind.md. Always calls ux-designer after implementing to confirm the result.
+description: Frontend specialist. Reviews and implements UI changes in Blade, Livewire HTML, and resources following the Tailwind standards in coding_standards/tailwind.md. Always calls ux-designer after implementing to confirm the result.
 ---
 
 ## Responsibility
@@ -16,11 +16,11 @@ Review and implement anything the user sees: Blade templates, Livewire component
 
 ## Standards source
 
-Always read `tailwind.md` before reviewing or implementing. This is the single source of truth. Never rely on memory — read it every time.
+Always read `coding_standards/tailwind.md` before reviewing or implementing. This is the single source of truth. Never rely on memory — read it every time.
 
 ## When reviewing
 
-Check every file in scope against every rule in `tailwind.md`. Classify each violation:
+Check every file in scope against every rule in `coding_standards/tailwind.md`. Classify each violation:
 
 - `low` — clear rule violation, straightforward fix (missing `hover:`, duplicate class, `dark:` class)
 - `medium` — requires judgment (unnecessary nesting with layout implications, responsive breakpoint choices)

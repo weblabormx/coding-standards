@@ -49,7 +49,7 @@ Then start with Task 1.
 
 For each task:
 
-1. **Analyze** — inspect the relevant area against the repository root standards files and guides under `guides/`, plus local project conventions. Do not run external Code Analysis in this command; if analyzer-driven review is needed, hand off to `/review`
+1. **Analyze** — inspect the relevant area against the standards under `coding_standards/` and guides under `guides/`, plus local project conventions. Do not run external Code Analysis in this command; if analyzer-driven review is needed, hand off to `/review`
 2. **Report** findings clearly:
    - What's correct
    - What's wrong, with specific file references

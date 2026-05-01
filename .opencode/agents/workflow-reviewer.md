@@ -13,7 +13,7 @@ Use this agent when changes touch:
 
 - `.opencode/commands/**`
 - `.opencode/agents/**`
-- Repository root standards files and `guides/**`
+- Standards under `coding_standards/**` and guides under `guides/**`
 - Project documentation under `docs/{project}/**`
 - Feature analysis documents under `docs/{project}/analysis/**`
 - Any README or workflow document that teaches future agents or developers what to do
