@@ -10,6 +10,7 @@ This repository is the single source of truth for shared coding rules, assistant
 
 | Guide | Description |
 |---|---|
+| [Installation](guides/installation.md) | Global installation for Codex, Cloud, and OpenCode without copying files into projects |
 | [AI Assistants](guides/ai-assistants.md) | Shared workflow, command system, and agent responsibilities |
 | [Feature Analysis](guides/feature-analysis.md) | How to write and validate feature analysis documents |
 | [Documentation](guides/documentation.md) | How project documentation should be organized and maintained |

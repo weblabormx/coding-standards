@@ -1,15 +1,16 @@
 # AI Assistants
 
-This project is configured to work with Codex and OpenCode.
+This project is configured to work with Codex, Cloud environments, and OpenCode.
 
 The goal is to keep one shared workflow, one shared standards source, and a single set of commands that any supported assistant can use.
+
+For global installation steps, use [Installation](installation.md). That guide is the source of truth for setup and linking.
 
 ---
 
 ## Source of Truth
 
 - standards files under `coding_standards/`, plus guide files under `guides/`: shared standards and workflows for assistants and developers
-- `OPENCODE.md`: main workflow and assistant behavior rules for the project
 - `.opencode/commands/*.md`: canonical command definitions — each file contains the full workflow for that command
 - `.opencode/agents/*.md`: agent role definitions — each file defines a specialist's responsibilities and behavior
 
@@ -120,51 +121,17 @@ Commands live in `.opencode/commands/` and are shared across all supported assis
 
 ---
 
-## OpenCode
+## Global Installation
 
-OpenCode uses:
-- `OPENCODE.md` as the repository entry point
-- `.opencode/commands/*.md` for repository-local command definitions
-- `.opencode/agents/*.md` for repository-local agent definitions
+Install these assets globally from this repository. Do not copy commands, agents, guides, or coding standards into individual projects.
 
-### Installing OpenCode Commands
+Use [Installation](installation.md) for:
 
-If your OpenCode setup loads repository-local commands automatically, no extra setup is needed.
-
-If it uses another local commands directory, copy the markdown files from `.opencode/commands/` into the directory your OpenCode installation reads.
-
-If commands do not appear after opening the repository, restart OpenCode or reload the workspace.
-
----
-
-## Codex
-
-Codex can use the repository commands directly by linking them into the local Codex skills directory.
-
-When a linked command says to call an agent from `.opencode/agents/`, Codex must read the corresponding agent file directly and follow that role definition for the command flow.
-
-### Installing Codex Commands
-
-1. Ensure the local Codex skills directory exists:
-
-```bash
-mkdir -p ~/.codex/skills
-```
-
-2. Link each repository command into `~/.codex/skills`:
-
-```bash
-for cmd in .opencode/commands/*.md; do
-  [ -f "$cmd" ] || continue
-  skill_name=$(basename "$cmd" .md)
-  mkdir -p "$HOME/.codex/skills/$skill_name"
-  ln -sfn "$(pwd)/$cmd" "$HOME/.codex/skills/$skill_name/SKILL.md"
-done
-```
-
-3. Restart Codex or open a new session in this repository.
-
-Because Codex reads the linked command files directly and command files reference repository agent files, there is no separate command copy to keep in sync.
+- Codex global setup
+- Cloud global setup
+- OpenCode global setup
+- helper-script usage
+- verification and update steps
 
 ---
 
@@ -174,8 +141,7 @@ When updating assistant workflow in this repository:
 
 1. Update the command file in `.opencode/commands/` that defines the behavior
 2. Update the agent file in `.opencode/agents/` if the role's responsibilities changed
-3. Update `OPENCODE.md` if the overall workflow or process changes
-4. Update this documentation if the command list, agent list, browser-validation workflow, or installation process changed
-5. Keep references in `README.md` and repository docs in sync
+3. Update this documentation if the command list, agent list, browser-validation workflow, or installation process changed
+4. Keep references in `README.md` and repository docs in sync
 
 If the same instruction exists in more than one place, prefer reducing duplication and documenting which file is authoritative.
