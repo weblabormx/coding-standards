@@ -85,7 +85,10 @@ Commands orchestrate agents. Each agent is a specialist with a narrow, well-defi
   analyst → if ../ia-analyzer exists: Code Analysis report; otherwise: code-reviewer report → optional developer fixes → same validation gate/fallback until pass
 
 /repair-project:
-  compare working source → repair checklist → developer → if ../ia-analyzer exists: Code Analysis ↔ fixes; otherwise: code-reviewer ↔ developer → tech-lead → targeted validation → optional commit per repair task
+  compare working source → repair checklist → developer → targeted runtime/browser validation per repair task → automatic commit per completed repair task unless the user explicitly forbids commits
+
+/cleanup:
+  build strict area queue (Livewire → models → traits → services → notifications/policies/observers → Blade/translations → routes/config → tooling/helpers/casts) → developer by validated cleanup group → if ../ia-analyzer exists: Code Analysis ↔ fixes; otherwise: code-reviewer ↔ developer → Playwright CDP browser validation for visible flows → optional commit per cleanup group
 
 /finish:
   frontend → ux-designer ↔ cycle → if ../ia-analyzer exists: Code Analysis for modified UI/code files
@@ -112,12 +115,12 @@ Commands live in `.opencode/commands/` and are shared across all supported assis
 | `/develop` | Full implementation flow with Code Analysis when `../ia-analyzer` exists, otherwise the previous code-reviewer/tech-lead fallback | [develop.md](.opencode/commands/develop.md) |
 | `/review` | Run Code Analysis when `../ia-analyzer` exists, otherwise internal code-reviewer review, and optionally refactor until validation passes | [review.md](.opencode/commands/review.md) |
 | `/repair-project` | Repair a broken branch/project after a merge, Laravel upgrade, base update, dependency update, or branch divergence by comparing against a known-working source, validating fixes, and optionally committing each repair task. | [repair-project.md](.opencode/commands/repair-project.md) |
-| `/finish` | Final polish after code is working: frontend review, UX review, Browser Use validation, translations, docs | [finish.md](.opencode/commands/finish.md) |
+| `/finish` | Final polish after code is working: frontend review, UX review, Playwright CDP browser validation, translations, docs | [finish.md](.opencode/commands/finish.md) |
 | `/document` | Write or update project documentation in the correct docs folder | [document.md](.opencode/commands/document.md) |
 | `/analyze-feature` | Analyze a feature/module request, create the analysis document, and validate with Document Analysis when `../ia-analyzer` exists or internal fallback otherwise | [analyze-feature.md](.opencode/commands/analyze-feature.md) |
 | `/add-rules` | Fix a bug and update coding standards to prevent recurrence | [add-rules.md](.opencode/commands/add-rules.md) |
 | `/quote` | Estimate project scope at a high level | [quote.md](.opencode/commands/quote.md) |
-| `/cleanup` | Run project-wide cleanup, refactor, and standards health checks after the project already works | [cleanup.md](.opencode/commands/cleanup.md) |
+| `/cleanup` | Execute autonomous project-wide cleanup in strict area order after the project already works, preserving behavior while improving structure and standards alignment | [cleanup.md](.opencode/commands/cleanup.md) |
 
 ---
 

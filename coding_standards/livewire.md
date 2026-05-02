@@ -39,11 +39,13 @@ After `mount()` and the optional rules section, the remaining operational method
 
 Every Livewire component that reads or mutates protected resources must enforce authorization. 
 
-- `mount()` must call `$this->authorize()` for the view intent (`'view'`, `'create'`, `'update'`) before assigning any properties
-- Every mutating action method (`delete`, `save`, `confirm*`, etc.) must call `$this->authorize()` with the relevant policy action before doing any work
-- Authorization must never be skipped just because the button is hidden in the view — the component is the authoritative guard
-- If there is no meaningful policy subject yet, an equivalent explicit hard guard at the component level is acceptable (for example `abort_unless(auth()->user()?->sudo, 403)`). Do not fail when the component clearly enforces a strong server-side guard even if it is not written with `$this->authorize()`.
-- When the whole component is protected by one strong component-level guard (for example a sudo-only admin utility), do not require every later action method to repeat the same guard or add redundant `$this->authorize()` calls.
+- `mount()` must call `$this->authorize()` for the component-level intent (`'view'`, `'create'`, `'update'`, or the closest policy ability for the screen) before assigning protected resource properties or exposing protected state.
+- If the component does not have `mount()` and it reads or mutates protected resources, add `mount()` and put the authorization guard there.
+- Do not require repeated `$this->authorize()` or `authorizeAccess()` calls inside every public action method (`delete`, `save`, `select*`, `confirm*`, pagination, filters, tab switches, etc.) when `mount()` already protects the component's resource or screen.
+- Do not add a generic `authorizeAccess()` helper only to call it from every action. Prefer one clear component-level guard in `mount()`.
+- Authorization must never be skipped just because the button is hidden in the view — the component-level `mount()` guard is the authoritative server-side guard for the Livewire screen.
+- If an action crosses into a different protected resource or a different policy ability that is not covered by the component-level `mount()` guard, authorize that exceptional action specifically. Do not treat normal state changes inside the already-authorized screen as requiring their own repeated guard.
+- If there is no meaningful policy subject yet, an equivalent explicit hard guard in `mount()` is acceptable (for example `abort_unless(auth()->user()?->sudo, 403)`). Do not fail when the component clearly enforces a strong server-side guard even if it is not written with `$this->authorize()`.
 - When the guarded subject is the authenticated user or another component-wide contextual object, assigning that contextual object during `mount()` is allowed as part of establishing the guarded state. Do not fail just because `$this->user = auth()->user()` happens immediately before the hard guard.
 
 ```php
@@ -56,11 +58,10 @@ public function mount(BillingPlan $billing_plan)
 
 public function deletePlan()
 {
-    $this->authorize('delete', $this->billingPlan);
     $this->billingPlan->delete();
 }
 
-// Incorrect — no auth check, any user that calls the method can delete
+// Incorrect — protected component has no mount-level auth check
 public function deletePlan()
 {
     $this->billingPlan->delete();

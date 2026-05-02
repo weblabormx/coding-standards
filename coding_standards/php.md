@@ -10,6 +10,8 @@
 - No hardcoded user-facing text in Blade or PHP
 - No Spanish text directly in Blade or PHP files
 - Only fail this rule when the text is clearly user-facing in the running product (notifications, dialogs, labels, buttons, headings, validation messages, emails, Blade output). Do not fail for internal log labels, debugging text, shell snippets, or purely developer-facing comments.
+- Do not fail internal guard-clause exception messages, invariant checks, or developer-oriented thrown error text unless the code clearly renders that exact message to end users in the product response or UI.
+- Strings already wrapped in translation helpers such as `__()`, `trans()`, or `@lang()` pass this rule. In projects that use Laravel JSON translations, the English string inside `__()` is itself the translation key and must not be treated as hardcoded UI copy.
 
 ### Code Cleanliness
 
@@ -22,6 +24,7 @@
 - Do not fail just because a callback, closure, process collector, or helper method is used once. Fail only when inlining would clearly improve readability and the extracted piece does not name a meaningful concept.
 - Do not fail a short intermediate variable when it carries useful type context, avoids repeating a long chain, or makes a side effect call clearer (for example a documented authenticated user before `notify()`).
 - Do not fail small framework lifecycle, convention, or contract methods whose value is their recognized name and integration point, even if they are short. Examples include `rules()`, `validationAttributes()`, `validationMessages()`, `casts()`, and similar framework hook methods.
+- Do not fail explicit scalar or boolean return types on short predicate, capability, or query helper methods (for example `isActive(): bool`, `canBeDeleted(): bool`) when the type materially clarifies intent and does not conflict with a visible contract or local style in the file.
 
 ```php
 // Correct
@@ -37,7 +40,7 @@ public static function all(): Collection
 }
 ```
 
-**Exception:** When overriding a parent method that already declares a return type, you **must** keep the same return type to satisfy PHP's method compatibility contract. Removing it causes a fatal error.
+**Exception:** When a method must keep a return type to satisfy a PHP compatibility contract, you **must** keep the same return type. This includes overriding a parent method, implementing an interface method, fulfilling an abstract method, or preserving a framework/library contract that the class explicitly declares. Removing it causes a fatal error or breaks the declared integration.
 
 ```php
 // Correct — parent declares BelongsToMany, override must match
@@ -51,9 +54,15 @@ public function roles()
 {
     return $this->belongsToMany(Role::class, 'role_has_permissions');
 }
+
+// Correct — interface declares array, implementation must match
+public function set($model, string $key, $value, array $attributes): array
+{
+    return [$key => $value];
+}
 ```
 
-Before removing a return type, check whether the method overrides a parent — if it does, keep the type.
+Before removing a return type, check whether the method satisfies any declared parent, interface, abstract, or explicit framework contract. If it does, keep the type.
 
 ### Class Declarations (Namespaces Only)
 
@@ -62,6 +71,8 @@ Before removing a return type, check whether the method overrides a parent — i
 - Group imports from the same namespace: `use App\Models\{User, Plan};`
 - This rule applies to class-like symbols (`new \Foo\Bar`, `\Foo\Bar::class`, `catch (\Throwable $e)`, return/param/property type declarations). It does **not** apply to plain function calls or Laravel/global helpers such as `trim()`, `now()`, `str()`, or `abort()`.
 - If the only inline backslashes in the file are function/helper calls such as `\trim()` or `\now()`, this rule passes.
+- Do not fail short class names that already resolve through the file's current namespace (for example `BillingPlan::class` inside `namespace App\Models;`). This rule is about inline fully qualified names with backslashes or missing imports for out-of-namespace classes, not normal short references to neighbors in the same namespace.
+- Do not infer that a short class name is out-of-namespace solely because there is no `use` statement. If the reference has no namespace separator and the file namespace plausibly resolves it (for example neighboring models inside `App\Models`), it passes.
 
 ```php
 // Correct — helper calls are not class names

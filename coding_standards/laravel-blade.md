@@ -21,7 +21,7 @@ Every blade that reads or mutates protected resources must enforce authorization
 
 - Action buttons (delete, migrate, edit) must be wrapped in `@can` / `@cannot` directives
 - Never duplicate policy logic inside the view. If the policy already checks a condition (e.g. `hasSubscribers`), do not re-check it in Blade — trust the policy
-- The `@can` wrapper controls visibility only; the component action is still the authoritative guard
+- The `@can` wrapper controls visibility only; the Livewire component must still have its authoritative server-side guard at the component level, normally in `mount()` as defined in `coding_standards/livewire.md`
 
 ```blade
 {{-- Correct — policy handles all conditions internally --}}

@@ -1,6 +1,6 @@
 ---
 name: repair-project
-description: Use this command when a project, branch, or copied implementation stopped working after a merge, Laravel upgrade, Weblabor Base update, dependency update, branch divergence, or copy from another project. It compares against a known-working source, repairs the broken project with minimal fixes, validates functionality with focused runtime and Browser Use checks when available, traverses reachable pages in the repaired flow with explicit pass/fail reporting, and can create commits per completed repair task when approved.
+ description: Use this command when a project, branch, or copied implementation stopped working after a merge, Laravel upgrade, Weblabor Base update, dependency update, branch divergence, or copy from another project. It compares against a known-working source, repairs the broken project with minimal fixes, validates functionality with focused runtime checks plus Playwright-over-CDP browser validation when available, traverses reachable pages in the repaired flow with explicit pass/fail reporting, and creates one commit per completed repair task by default unless the user explicitly forbids commits.
 ---
 
 # /repair-project - Restore Broken Project
@@ -32,27 +32,43 @@ Common triggers:
 
 ## Phase 1 - Validation Readiness Check
 
+Before planning repairs, always run a baseline project readiness check. This is mandatory for every repair run, even when the visible failure seems unrelated.
+
+Baseline readiness requirements:
+- Confirm the expected environment file exists, normally `.env`; if it is missing, stop and tell the user which env file is required
+- Inspect required environment keys from config, `.env.example`, bootstrap, service providers, package integrations, and the failing flow before running commands that depend on them
+- If a required environment key is missing or blank, stop and report the exact key name and where it appears to be needed, using this style: `Falta configurar <ENV_KEY>. Por favor agregala a .env antes de continuar.`
+- Confirm database connection settings are present before database commands; do not run migrations or seeders when the database env is incomplete
+- Run `composer install` and treat failures as repair blockers or dependency repair evidence
+- Run `npm run build` and treat failures as repair blockers or frontend repair evidence
+- Run pending migrations with `php artisan migrate` when the configured environment is local/development and database env is complete
+- Run `php artisan db:seed` when the configured environment is local/development, database env is complete, and the command is safe for the current database
+- If migrations or seeding are unsafe, destructive, production-like, or blocked by missing env/database access, do not run them; report the explicit blocker and ask for confirmation or missing configuration
+- Record every baseline check as `passed`, `failed`, `blocked`, or `skipped with reason` before moving to repair planning
+
+Do not continue to repair planning when baseline readiness fails because of missing env configuration, failed dependency installation, failed build, failed migrations, or failed seeding unless the user explicitly instructs you to continue with lower confidence and the blocker is not required for the affected flow.
+
 Before planning repairs, check whether the project has focused validation available for the affected area.
 
 Inspect, without modifying files:
 - Local project URL in `.env`, preferring `APP_URL`
-- Whether the local server and affected route can be opened with `@browser-use` in the Codex in-app browser
+- Whether the local server and affected route can be opened in a Chrome session that the user can authenticate manually and expose through remote debugging for Playwright CDP control
 - Relevant artisan, route, config, or build commands that can prove the broken area
 - Existing browser tooling only as context, not as a required workflow step
 - Whether the repaired flow has a practical browser traversal scope such as dashboard, module navigation, index/detail pages, or route group entry points
 
 When browser validation is possible:
-- Use `@browser-use` as the required primary way to reproduce and verify the visible failure
+- Use Playwright connected over CDP to a user-opened Chrome session as the required primary way to reproduce and verify the visible failure
 - Identify the traversal scope and entry points that will be used later during browser validation
 
 If browser validation is not possible, tell the user clearly:
 
-> No pude validar este flujo en el navegador con Browser Use porque falta URL local utilizable, servidor levantado, autenticacion disponible, o el entorno necesario. Puedo continuar con checks funcionales, artisan, build y comparacion contra la fuente que si funciona, pero la confianza visual sera menor.
+> No pude validar este flujo en el navegador con Playwright por CDP porque falta URL local utilizable, servidor levantado, una sesion autenticada en Chrome con remote debugging, o el entorno necesario. Puedo continuar con checks funcionales, artisan, build y comparacion contra la fuente que si funciona, pero la confianza visual sera menor.
 
 When continuing without browser validation:
 - State that validation confidence is lower
 - Use the strongest available checks: artisan commands, targeted manual reasoning from branch comparison, build, and translation checks
-- State explicitly that command-line checks, runtime checks, or automated tests do not replace visible browser validation for a user-facing flow when `@browser-use` is available
+- State explicitly that command-line checks, runtime checks, or automated tests do not replace visible browser validation for a user-facing flow when Playwright CDP validation is available
 - Do not claim the flow is fully validated if no browser or equivalent runtime validation covered it
 
 ---
@@ -84,16 +100,12 @@ Ask only for missing information that materially affects the repair:
    - Translation issue
    - Build or install failure
    - Unknown failure
-5. Are commits allowed?
-   - Commits per completed repair task
-   - Commits only after user confirmation
-   - No commits
-
 If the user already provided enough context, infer the answers and state them briefly before proceeding.
 
 Default commit interpretation for this command:
-- If the user asked for a long repair run and did not forbid commits, treat `Commits per completed repair task` as the default commit mode to present in the repair plan confirmation
-- If commit preference is unclear and the command is running interactively, state that the default selection in the repair plan is `Commits per completed repair task` unless the user explicitly switches to another mode
+- Unless the user explicitly forbids commits, `Commits per completed repair task` is the required default behavior for this command
+- Do not ask whether commits are allowed, do not ask for per-task commit confirmation, and do not delay a passed repair task's commit waiting for extra approval
+- The only valid opt-out is an explicit user instruction to avoid commits
 
 ---
 
@@ -146,14 +158,14 @@ Comparison rules:
 Reproduce or detect the failure with the smallest safe validation first.
 
 Use targeted checks before broad checks:
-- `@browser-use` for the visible flow when the issue is user-facing and the local URL is available
+- Playwright over CDP for the visible flow when the issue is user-facing and the local URL is available
 - `php artisan route:list` for route or controller failures
 - `php artisan config:clear` or `php artisan view:clear` for local cache issues when safe
 - `composer install` when dependency installation is the suspected issue
 - `npm run build` when assets or frontend build are involved
 - `php artisan lang:search` when translations are involved and a read-only check is enough
 
-When the issue is a user-facing flow and `@browser-use` is available, do not treat command-line checks, runtime checks, PHPUnit, Pest, or build output as a substitute for browser validation. Those checks can support the repair, but the visible flow must still be traversed in the browser before the task is considered fully validated.
+When the issue is a user-facing flow and Playwright CDP validation is available, do not treat command-line checks, runtime checks, PHPUnit, Pest, or build output as a substitute for browser validation. Those checks can support the repair, but the visible flow must still be traversed in the browser before the task is considered fully validated.
 
 Run mutation-capable translation commands such as `php artisan lang:sync` only after the repair plan is approved or when the user already authorized direct repair.
 
@@ -202,14 +214,13 @@ The confirmation must include:
 - Known failure or validation target
 - Planned repair tasks
 - Validation commands or checks to run
-- Browser traversal scope and entry points for the repaired flow when Browser Use validation is available
-- Browser traversal cap for the repaired flow when Browser Use validation is available
-- Commit mode
+- Browser traversal scope and entry points for the repaired flow when Playwright CDP validation is available
+- Browser traversal cap for the repaired flow when Playwright CDP validation is available
 - Timebox and stall rules for this run
 
-If the user did not explicitly choose a commit mode, present `Commits per completed repair task` as the selected default in the confirmation instead of leaving commit behavior implicit.
+Do not ask the user to choose a commit mode during this confirmation. Commits happen automatically per completed repair task unless the user explicitly forbade commits earlier.
 
-Do not edit files, run mutation-capable commands, or create commits until the user confirms the repair plan, unless the user already gave explicit permission to proceed with repairs and commits in the original request.
+Do not edit files, run mutation-capable commands, or create commits until the user confirms the repair plan, unless the user already gave explicit permission to proceed with repairs in the original request.
 
 Default repair execution limits unless the user says otherwise:
 - Progress update at least every 15 minutes during long runs, and also after each meaningful repair task
@@ -234,7 +245,8 @@ For each repair task:
    - The task reaches 5 attempts
    - Two consecutive attempts fail without producing new evidence
    - The task is blocked by missing environment, missing external dependency, or ambiguous intended behavior
-7. If the task stops without passing, record the blocker and continue with the next independent task when possible
+7. Unless the user explicitly forbade commits, create that task's commit immediately after the task passes validation and before starting the next independent repair task
+8. If the task stops without passing, record the blocker and continue with the next independent task when possible
 
 This command must not run external Code Analysis and must not use `code-reviewer` or `tech-lead` as approval gates during repair.
 
@@ -246,9 +258,13 @@ If a task works but leaves follow-up quality concerns:
 Visible progress rules:
 - Report progress in the user's language at least every 15 minutes during long runs
 - Report when a task starts, when a task passes validation, when a task is committed, and when a task is blocked
+- Show a visible checklist for the baseline readiness phase before repair planning, including `.env`, required env keys, `composer install`, `npm run build`, migrations, seeding, and browser readiness
+- When inspecting or changing files, report each relevant file with a pass/fail/blocker line using the file path and what was checked, for example `✓ Archivo: app/Http/Controllers/FooController.php - carga y coincide con la ruta reparada`
+- When inspecting or validating routes, report each relevant route with a pass/fail/blocker line using method, URI, route name when available, and outcome
 - When browser traversal runs, report the current iteration number plus page coverage and blockers according to Phase 9
 - For each validation step that materially checks the repair, emit a visible test-style pass/fail line so the user can see what succeeded, failed, or was blocked
 - Treat these visible pass/fail lines as reporting evidence only. Do not present them as proof that automated unit or integration tests were executed unless such tests actually ran
+- Do not make PHPUnit, Pest, or other unit/integration test output the main user-facing report unless the user explicitly asked for test execution; tests are supporting evidence only and never replace file, route, and browser/page validation for a repair flow
 - If the run is stalled, say exactly what was tried, what failed, and what evidence is still missing
 
 ---
@@ -263,21 +279,31 @@ Validation order:
    - Reproduce the original failure or the closest observable proxy
    - Run the narrowest command or flow that can prove the repair worked
    - Prefer runtime or behavior validation over standards validation
+   - Maintain a user-visible validation checklist grouped by baseline checks, files inspected/changed, routes checked, pages traversed, and remaining blockers
+   - Each checklist line must include a clear outcome marker such as `✓`, `✗`, `Bloqueado`, or `Omitido`, plus the concrete file, route, command, or page being validated
 
-2. **Static and install validation**
+2. **File and route validation**
+   - For every relevant changed or inspected file, report the file path and whether the file passes the repair-specific check
+   - For every relevant route in the repaired flow, report method, URI, route name when available, and whether it resolves, renders, redirects correctly, or is blocked
+   - Use `php artisan route:list` or equivalent route inspection to identify in-scope routes when routes/controllers/views are involved
+   - Do not claim that all files or all routes work unless the run actually checked all files or all routes in that stated scope
+   - If only a scoped subset was checked, label it clearly as `Rutas revisadas en alcance` or `Archivos revisados en alcance`
+
+3. **Static and install validation**
    - Dependency install when relevant
    - Autoload, config, route, or view sanity checks when relevant
 
-3. **Translations**
+4. **Translations**
    - Run `php artisan lang:sync`, `php artisan lang:search`, and a final `php artisan lang:sync` only when translations or user-facing copy were part of the repair
    - Fix missing keys or hardcoded user-facing strings only when directly related to the repair
 
-4. **Frontend/build validation**
+5. **Frontend/build validation**
    - Run `npm run build` only when assets, Blade, Livewire views, CSS, or JS changed
 
-5. **Browser validation**
-   - Use `@browser-use` for repaired user-facing flows using the local project URL from `.env`
+6. **Browser validation**
+   - Use Playwright connected over CDP to a user-opened Chrome for repaired user-facing flows using the local project URL from `.env`
    - Add `http://` when the URL is missing a scheme
+   - When auth is required, ask the user to open Chrome with remote debugging enabled and log in manually before starting traversal
    - Reload after code changes before checking the repaired flow
    - Traverse the reachable in-scope pages for the repaired flow, not only the first visible page
    - Start from the confirmed entry points and build a queue of reachable in-scope pages
@@ -286,10 +312,17 @@ Validation order:
    - Follow internal links, menus, tabs, and index/detail transitions that are directly reachable and relevant to the repaired area
    - Do not perform destructive actions during traversal unless the user explicitly approved them as part of the repair
    - For each visited page, report the required evidence fields: current repair iteration, page number or identifier, page label or route, outcome, and blocker or finding when relevant
+   - Use a route/page checklist format for every visited page, for example `✓ Pagina 3: GET /admin/users (users.index) - carga correctamente`
+   - If a page fails, include the visible error, HTTP/status signal when known, screenshot/trace reference when available, and the file/route suspected only when supported by evidence
    - The visible trace for each visited page must use a localized test-style pass/fail line with a clear outcome marker such as `✓`, `✗`, or an equivalent unambiguous pass/fail label in the user's language
    - Keep counts for pages discovered, pages visited, pages passed, pages blocked, pages skipped, and total traversal iterations
    - Treat the traversal output as a page coverage report of reachable pages and findings inside the approved scope
-   - If `@browser-use` is unavailable for this run, state that limitation and replace it with the strongest available runtime checks
+   - If Playwright CDP browser validation is unavailable for this run, state that limitation and replace it with the strongest available runtime checks
+
+7. **Automated tests**
+   - Run PHPUnit, Pest, or other automated tests only when they are the narrowest useful validation, when the user requested them, or when the repair directly affects test-covered backend behavior
+   - Report automated tests as supporting evidence, not as the primary repair report
+   - A final report that only lists unit test results is incomplete for this command when files, routes, or browser-visible behavior were part of the repair
 
 Important:
 - Repair confidence comes from proving the broken flow works again
@@ -300,7 +333,11 @@ Important:
 
 ## Phase 10 - Commit Flow
 
-Create commits according to the commit mode confirmed in Phase 7.
+Create commits automatically for each completed repair task unless the user explicitly forbade commits.
+
+Default behavior after plan approval:
+- `Commits per completed repair task` is the active mode unless the user explicitly forbade commits
+- Under the default mode, a passed repair task is not complete until its commit is created
 
 For each completed repair task:
 
@@ -325,7 +362,7 @@ Commit rules:
 - Do not wait for unrelated follow-up cleanup before committing a task that already works
 - Do not push unless explicitly requested
 - Do not amend commits unless explicitly requested
-- The only mode that skips commits is an explicit `No commits` choice confirmed in Phase 2
+- The only mode that skips commits is an explicit user instruction to avoid commits
 
 ---
 
@@ -346,10 +383,15 @@ Final report must include:
 - Working source used for comparison
 - What changed recently
 - Repair tasks completed
-- Validation executed and results
+- Baseline readiness checklist with outcomes for `.env`, required env keys, `composer install`, `npm run build`, migrations, seeding, and browser readiness
+- Files inspected or changed, with one pass/fail/blocker line per relevant file
+- Routes checked in scope, with one pass/fail/blocker line per route including method, URI, and route name when available
+- Validation executed and results, separated by baseline, files, routes, pages, commands, and optional automated tests
 - Total repair iterations and per-task attempt counts
 - Browser traversal coverage: entry points, pages discovered, pages visited, pages passed, pages blocked, and pages skipped
 - A concise page-by-page findings report for the reachable pages inspected during the run
+- Counts summary for scoped files, routes, and pages, for example `Archivos: 6 revisados, 6 pasan, 0 bloqueados`; `Rutas: 8 revisadas, 8 pasan`; `Paginas: 5 visitadas, 5 pasan`
+- Automated test results only as supporting evidence when tests actually ran; do not substitute test results for file, route, or page validation
 - Commits created
 - Anything not validated and why
 - Remaining blockers
@@ -382,6 +424,6 @@ For `control-total`, use `docs/control-total` as the project documentation sourc
 - Stop and ask when the correct behavior is ambiguous
 - Prefer targeted validation early and broader validation after repairs pass
 - Check for browser validation readiness at the start and warn the user before continuing without it
-- Be explicit when direct Browser Use validation is unavailable
+- Be explicit when direct Playwright CDP validation is unavailable
 - Never loop forever: stop after the configured attempt limits or when the run is blocked
 - Recommend `/cleanup` for non-blocking cleanup and `/review` for standards work only after repair

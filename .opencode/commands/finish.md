@@ -1,6 +1,6 @@
 ---
 name: finish
-description: Use this command when the code is already working and the feature needs to be fully polished and closed out. Runs frontend review, UX review, Browser Use validation, translation validation, and documentation in sequence. Do NOT use for active development — use /develop for that.
+ description: Use this command when the code is already working and the feature needs to be fully polished and closed out. Runs frontend review, UX review, Playwright-over-CDP browser validation, translation validation, and documentation in sequence. Do NOT use for active development — use /develop for that.
 ---
 
 # /finish — Feature Completion
@@ -52,11 +52,12 @@ The cycle runs automatically:
 
 ## Phase 5 — Browser Validation
 
-If Phase 4 modified files, validate the confirmed user flow with Browser Use before translation validation.
+If Phase 4 modified files, validate the confirmed user flow with Playwright over CDP before translation validation.
 
 - Read the project URL from `.env`, preferring `APP_URL` when available
 - If the URL does not include a scheme, prepend `http://`
-- Open the flow in the Codex in-app browser with Browser Use
+- When auth is required, ask the user to open Chrome with remote debugging enabled and log in manually first
+- Open the flow by connecting Playwright over CDP to that Chrome session
 - Reload after code changes before checking the updated flow
 - Confirm the visible flow works, and note any blockers or environment limitations
 - Run targeted build or runtime checks only when the changed files require them in addition to browser validation
@@ -102,5 +103,5 @@ Summarize what was completed across all phases:
 ## Rules
 
 - Never implement anything without user confirmation per phase
-- Run Browser Use validation before translations and documentation
+- Run Playwright CDP browser validation before translations and documentation
 - If any phase surfaces a backend issue, stop and recommend `/review` or `/develop` before continuing

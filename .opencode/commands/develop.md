@@ -67,13 +67,14 @@ Validation rules:
 - If 10 minutes pass without a file reaching a passing analyzer result, stop the current analyzer loop, clear the current validation attempt, and retry the analyzer flow once from the current changed-file queue.
 - If the retry also goes 10 minutes without a passing file, stop and report the blocker instead of continuing indefinitely.
 
-If `../ia-analyzer` does not exist, skip external Code Analysis in this command and use focused runtime, artisan, build, or Browser Use validation that matches the confirmed scope.
+If `../ia-analyzer` does not exist, skip external Code Analysis in this command and use focused runtime, artisan, build, or Playwright-over-CDP browser validation that matches the confirmed scope.
 
 When the confirmed scope affects a real user flow in a local project UI:
 
-- Prefer Browser Use in the Codex in-app browser for functional validation.
+- Prefer Playwright connected over CDP to a user-opened Chrome session for functional validation.
 - Read the project URL from `.env`, preferring `APP_URL` when available.
 - If the URL does not include a scheme, prepend `http://`.
+- When auth is required, ask the user to open Chrome with remote debugging enabled and log in manually before browser validation.
 - Reload the page after code changes before validating the updated flow.
 - Report clearly when browser validation was not possible because the URL, server, auth state, or required environment was unavailable.
 
@@ -103,5 +104,5 @@ Stop here. Do not run extra documentation work as part of this command unless ex
 - Do not write documentation in this flow unless explicitly requested or included in the confirmed scope
 - If `../ia-analyzer` exists, run external Code Analysis for modified code or implementation files in this command
 - If `../ia-analyzer` does not exist, use focused validation that matches the confirmed scope
-- Prefer Browser Use for validating local user-facing flows
+- Prefer Playwright over CDP for validating local user-facing flows
 - External Code Analysis belongs in `/develop` and `/review`

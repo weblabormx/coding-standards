@@ -41,7 +41,7 @@ After user confirmation, call `developer` to apply the code fix when a code fix 
 If any code or implementation file is modified:
 
 1. Choose the smallest validation that proves the reported issue is fixed.
-2. Run targeted runtime, artisan, build, or Browser Use checks based on the issue that triggered the rule change.
+2. Run targeted runtime, artisan, build, or Playwright-over-CDP browser checks based on the issue that triggered the rule change.
 3. If validation fails, return the new evidence to `developer`, update the affected files, and rerun only the relevant validation.
 4. Keep the loop bounded. If the same path fails repeatedly without new evidence, stop and report the blocker.
 

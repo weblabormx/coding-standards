@@ -1,133 +1,367 @@
 ---
 name: cleanup
-description: Use this command when the project already works and the user wants a general health check, cleanup, refactor, standards pass, or project-wide improvement — not a specific file. Triggers when the user says "limpia el proyecto", "el proyecto está desactualizado", "hay cosas que no siguen estándares en todo el proyecto", "cleanup", or anything suggesting broad project-wide cleanup. It analyzes the project task by task and file by file, reports visible pass/fail evidence in a test-style trace, validates each applied cleanup, and can create granular commits per validated cleanup task or group when execution is approved. Do NOT use to repair a broken branch/project after a merge, Laravel upgrade, base update, or branch divergence — use /repair-project for that. Do NOT use for a specific file or module — use /review for that.
+ description: Use this command when the project already works and the user wants project-wide cleanup, refactor, standards alignment, or internal code quality improvements without changing the intended behavior. Triggers when the user says "limpia el proyecto", "refactoriza todo", "dejalo al punto", "cleanup", or anything suggesting broad execution-heavy cleanup. It should actively clean the codebase in small validated groups, preserve visible behavior and business logic, validate each modified group with Code Analysis when available plus Playwright-over-CDP browser validation for user-facing flows, keep a visible progress trace, and leave larger architectural or product recommendations for the final summary. Do NOT use to repair a broken branch/project after a merge, Laravel upgrade, base update, or branch divergence — use /repair-project for that. Do NOT use to implement new features — use /develop for that. Do NOT use for a narrow file/module-only request — use /review for that.
 ---
 
-# /cleanup — Project Health Check & Cleanup
+# /cleanup - Project Cleanup And Refactor
 
-Your goal is to run structured cleanup and refactor tasks on a project that already works, one at a time, each scoped to ~10-15 minutes of work. Analyze each task file by file, keep the visible trace explicit, and after each task present findings and ask how to proceed.
+Your goal is to leave a working project cleaner, more standard, and easier to maintain without changing its intended behavior.
+
+Treat this command as an execution-heavy cleanup flow, not as a report-only audit.
+
+Core behavior:
+- Refactor and clean the project proactively in small validated groups
+- Preserve the same visible behavior, business logic, routes, permissions, and data behavior unless a strictly behavior-preserving fix requires a minimal adjustment
+- Keep the user informed with a visible progress trace while continuing automatically
+- Validate each modified cleanup group before moving on
+- Record larger issues, risky changes, schema changes, new features, or product recommendations for the final summary instead of expanding scope mid-run
+- Traverse the codebase in strict cleanup order instead of cherry-picking easy wins from unrelated areas
 
 If the project is currently broken after a merge, Laravel upgrade, Weblabor Base update, dependency update, branch divergence, or copy from another project, stop and recommend `/repair-project` first. Cleanup happens after repair, not before.
 
 ---
 
-## Entry Point
+## Purpose
 
-When invoked, explain the process briefly:
-> "Voy a revisar el proyecto por áreas y por archivos. Cada tarea es independiente. Te voy a ir mostrando una traza visible tipo test con lo que pasa o falla en cada archivo o flujo, sin implicar que se ejecutaron unit tests reales. Después de cada tarea te digo qué encontré y decides si ejecutamos, generamos el prompt para Copilot, o pasamos a la siguiente."
+Use this command when the code should end up cleaner while the system still behaves the same from the user's perspective.
 
-Then start with Task 1.
+Expected cleanup outcomes:
+- Better file placement and structure
+- Better naming, consistency, readability, and reuse
+- Removal of obvious duplication or dead cleanup-safe code
+- Better standards compliance under `coding_standards/` and `guides/`
+- Cleaner Livewire, Blade, model, notification, observer, policy, trait, service, route, and translation organization when relevant
 
----
+Non-goals for this command:
+- New features
+- Product changes
+- Intentional logic changes
+- Database redesigns or migrations that change product behavior
+- Broad architecture rewrites that need separate approval
 
-## Standard Tasks (run in this order)
-
-### Task 1 — Folder & File Structure
-- Are Livewire components in the correct directories? (`app/Livewire/Admin/`, `app/Livewire/Teams/`, etc.)
-- Are models, observers, notifications, traits in their standard locations?
-- Are there files in non-standard custom folders that should be moved?
-
-### Task 2 — Notifications
-- Do all notifications extend `App\Notifications\Notification`?
-- Do all notifications define `subject()`, `description()`, and `image()`?
-- Are any using hardcoded channels instead of the base class?
-
-### Task 3 — Translations
-- Are there hardcoded user-facing strings in Blade or PHP files?
-- Are there Spanish strings that should be in `lang` files?
-- If the volume is large: split into batches of ~10-15 files and propose a phased plan
-
-### Task 4 — Browser Flow Validation
-- Does the project define a local URL in `.env`, preferably `APP_URL`?
-- Can the main user flows be opened with Browser Use in the Codex in-app browser?
-- Are there broken screens, blocked actions, missing assets, or visible regressions in the main flows?
-- Report: what was validated, what is blocked, and what environment detail is missing
+If cleanup reveals those larger needs, finish the approved cleanup scope and report the follow-up items at the end.
 
 ---
 
-## Per-Task Flow
+## Phase 1 - Validation Readiness Check
 
-For each task:
+Before planning cleanup execution, check what validation is available for the project.
 
-1. **Analyze** — inspect the relevant area against the standards under `coding_standards/` and guides under `guides/`, plus local project conventions. Build an explicit file queue for the task and analyze the files one by one or in tightly related pairs when one file cannot be understood alone. Do not run external Code Analysis in this command; if analyzer-driven review is needed, hand off to `/review`
-2. **Report** findings clearly:
-   - What's correct
-   - What's wrong, with specific file references
-   - If the scope is large: estimate how many steps it would take and flag it
-   - File coverage for the task: files queued, files analyzed, files passed, files failed, files skipped
-3. **Ask**:
-   > "¿Qué deseas hacer con esto?"
-   - **Ejecutar aqui** — call `developer` to apply fixes, then run focused validation for the specific cleanup task
-   - **Generar prompt para Copilot** — generate a ready-to-paste prompt with full context and instructions
-   - **Saltar** — move to the next task
-4. Apply or generate. If code files were modified, run focused validation for that task, return failed findings to `developer`, and repeat only as needed for the task in scope. Use `/review` if the user wants analyzer-backed standards validation. Then move to the next task
+Inspect, without modifying files:
+- Current working tree state
+- Local project URL in `.env`, preferring `APP_URL`
+- Whether the local project can be opened in a Chrome session that the user can authenticate manually and expose through remote debugging for Playwright CDP control
+- Whether the current project's parent directory contains a sibling repository named `ia-analyzer` (`../ia-analyzer`)
+- Relevant artisan, build, route, or runtime checks that can validate the cleaned area
 
-### Per-File Analysis Rules
+Validation expectations:
+- If `../ia-analyzer` exists, use external Code Analysis for modified code or implementation files in this command
+- If a cleaned group affects a user-facing flow and browser validation is possible, use Playwright connected over CDP to a user-opened Chrome session as the primary visible validation for that flow
+- If browser validation is not possible, say so clearly and use the strongest available fallback checks
 
-Within each cleanup task:
-- Analyze the queued files in deterministic order
-- Keep the visible trace explicit enough to show which files were checked and what happened
-- For each analyzed file, report the file path, outcome, and the main finding or blocker when relevant
-- A localized test-style line with symbols such as `✓` or `✗` is encouraged for the visible trace, but it is only a reporting style and must not be presented as an actual unit test result unless real tests were executed
-- When two files are coupled, say why they are being analyzed together instead of pretending they are independent
-- If a file is skipped, state the reason explicitly
+If browser validation is unavailable for a user-facing flow, tell the user clearly:
 
-### Per-File Validation And Commit Rules
+> No pude validar este flujo en el navegador con Playwright por CDP porque falta URL local utilizable, servidor levantado, una sesion autenticada en Chrome con remote debugging, o el entorno necesario. Puedo continuar con cleanup y validaciones de codigo, artisan o build, pero la confianza visual sera menor.
 
-When the user chooses **Ejecutar aqui**:
-- Apply cleanup fixes in the smallest coherent unit possible
-- Validate each modified file or tightly coupled file set before treating it as complete
-- If validation fails, send the evidence back to `developer`, fix the issue, and revalidate only the affected files for the current task
-- If commits are allowed for the cleanup run, create one commit per validated cleanup task or tightly coupled cleanup group as the default behavior
-- If the user explicitly asked for per-file commits, use one commit per modified file when the files are independently valid and separable
-- If multiple modified files are inseparable for one cleanup fix, state that explicitly and create the smallest coherent commit instead of forcing an artificial split
+Do not pretend a UI flow was visually validated if it was not opened.
+
+---
+
+## Phase 2 - Cleanup Scope Confirmation
+
+Before implementing, confirm the cleanup run once at the beginning only when the user's request was not already an explicit autonomous cleanup instruction.
+
+Present:
+- That this command will execute cleanup, not only report findings
+- That the intended behavior must stay the same
+- The cleanup areas that will be processed
+- The validation strategy for each area
+- Commit mode
+- Timebox and stall rules for the run
+
+If the user already asked for an execution-heavy run, use that as the default interpretation and present it as the selected path instead of asking whether cleanup should execute at all.
+
+For this command, an explicit invocation such as `/cleanup`, "limpia el proyecto", "refactoriza todo", or "dejalo al punto" counts as approval to start the cleanup run unless the user added a restriction that still needs clarification.
+
+Default commit interpretation:
+- If the user asked for a long cleanup run and did not forbid commits, present `Commit per validated cleanup group` as the selected default
+- If commit preference is unclear and the run is interactive, state the default instead of leaving commit behavior implicit
+
+Do not ask for per-group approval, per-phase approval, or end-of-run approval. The command should either continue automatically, stop on a real blocker, or finish and report.
+
+Do not start file modifications until this single run-level confirmation has been given, unless the user's original request already clearly approved direct cleanup execution.
+
+---
+
+## Phase 3 - Build The Cleanup Checklist
+
+Create and maintain a cleanup checklist before the first code edit. Each item must be a cleanup group that can usually be completed and validated in about 10-15 minutes.
+
+Strict default cleanup order:
+
+1. Livewire components and their paired views
+   - Naming, organization, consistency, validation rules, repeated patterns
+   - Paired review of component class plus Blade view when the behavior depends on both
+2. Models
+   - Models
+3. Traits
+   - Traits
+4. Services
+   - Services
+5. Notifications, policies, and observers
+   - Notifications
+   - Policies
+   - Observers
+6. Blade and translation cleanup outside paired Livewire views
+   - Hardcoded user-facing strings
+   - Repeated patterns
+   - Readability and standards alignment
+7. Routes and configuration cleanup when behavior stays the same
+8. Supporting helpers, casts, console commands, and internal tooling
+9. Remaining standards-alignment opportunities that do not change behavior
+
+For each cleanup group, capture:
+- Area name
+- File queue
+- Total files discovered in that area
+- Why those files belong together
+- Expected cleanup work
+- Validation method
+- Whether the group touches a visible flow
+- Whether a commit was created
+- Attempt count
+
+Coverage rules:
+- Build the file queue for the entire active area before cleaning the first file in that area
+- Report queue counts for the active area and keep them updated as `queued`, `reviewed`, `cleaned`, `validated`, `blocked`, and `skipped`
+- Do not jump to a later cleanup area while the current area still has unreviewed files, unless the current area is empty or blocked by a real environment limitation
+- Do not pick opportunistic files from later areas just because they are easier or already familiar
+- If the project contains both Livewire classes and their Blade views, Livewire must be the first cleanup area processed
+- If the project has no files for an area, state `0 files` and move to the next area
+
+If a group is too large:
+- Split it into phases of 3-5 files or the smallest coherent subsets
+- Continue phase by phase without stopping the whole run unless the next phase is risky or blocked
+
+Checklist items must stay cleanup-scoped. Do not add these as active cleanup items:
+- New features
+- Database redesign
+- Behavior changes
+- Product/UI redesign requests
+- Broad architecture migrations
+
+Folder and file placement review must still happen, but it is part of the area being processed instead of a separate excuse to roam across the repo. When a file is misplaced, record the placement issue under the current area and fix it there if the move is behavior-preserving.
+
+Those belong in final recommendations.
+
+---
+
+## Phase 4 - Cleanup Execution Loop
+
+Process the checklist from top to bottom. Do not stop after each task just to ask whether to continue.
+
+Hard execution rule:
+- Finish or block the current cleanup area before moving to the next one
+- Within an area, work through the file queue in deterministic order
+- Do not skip ahead to a later file just to find an easier refactor unless the current file is blocked and that blocker is reported
+- Do not switch from Livewire to models, or from models to traits, until the current area's queue is exhausted or explicitly blocked
+
+For each cleanup group:
+
+1. Analyze the queued files against:
+   - `coding_standards/**`
+   - `guides/**`
+   - local project conventions already in use
+2. Build an explicit file queue in deterministic order
+3. Show the current coverage counts for the active area before editing
+4. Call `developer` with the current cleanup group, file queue, and cleanup findings
+5. `developer` refactors the smallest coherent unit possible
+6. Keep the intended behavior the same
+7. Validate the modified unit immediately
+8. If validation passes, continue to the next cleanup unit or next group automatically
+9. If validation fails, fix only the affected unit and revalidate
+10. If the group reveals a larger non-cleanup issue, record it as a follow-up item and continue when safe
+
+Visible progress rules:
+- Report progress in the user's language at least every 15 minutes during long runs
+- Report the active area name and coverage counts whenever the command enters a new area
+- Report when a cleanup group starts, when it passes validation, when it is blocked, and when it is committed
+- Keep a visible file-by-file or pair-by-pair trace
+- For each materially validated step, emit a visible pass/fail style line so the user can see what passed, failed, or was blocked
+- Treat those lines as reporting evidence only. Do not imply that unit tests ran unless they actually ran
+
+The command should feel like an active cleanup session, not a passive audit.
+
+---
+
+## Per-File And Per-Group Rules
+
+Within each cleanup group:
+- Analyze files in deterministic order
+- Review tightly related file pairs together only when one file cannot be understood alone
+- State why coupled files are being handled together
+- Keep edits closely scoped to the cleanup group
+- Prefer behavior-preserving refactors over stylistic churn
+- Avoid broad rewrites when a smaller cleanup achieves the same result
+- If a file is skipped, say why
+- If a file is deferred because it would change behavior or needs a larger design change, count it as `blocked` or `recommendation`, not as silently skipped or completed
+
+Behavior-preserving rule:
+- The system should still work the same after cleanup
+- The visible flow, business rules, and expected outputs should remain the same
+- If a possible cleanup would change behavior, stop that specific item and move it to recommendations unless the user explicitly approves the behavior change
+
+Recommendation rule:
+- If cleanup reveals missing migrations, schema redesigns, new abstractions, UI redesigns, performance work, or business-rule problems, do not silently implement them as part of cleanup
+- Finish the approved cleanup work first
+- Report those items in the final recommendations section with enough context to decide later
+
+---
+
+## Phase 5 - Validation Strategy
+
+Every modified cleanup group must be validated before it is treated as complete.
+
+Validation order for each group:
+
+1. Focused code validation
+2. Focused runtime/artisan/build validation when relevant
+3. Browser validation for user-facing flows when possible
+4. External Code Analysis revalidation for modified code files when available
+
+### Code Analysis Validation
+
+Check whether the current project's parent directory contains a sibling repository named `ia-analyzer` (`../ia-analyzer`). Do not hardcode a machine-specific absolute analyzer path.
+
+If `../ia-analyzer` exists, external Code Analysis is required for every modified code or implementation file in the current cleanup group. Run this command from `../ia-analyzer`:
+
+```bash
+php artisan validate:now "Code Analysis" "{absolute_modified_file_path}"
+```
+
+Rules:
+- The second argument must be the exact absolute path of the modified file
+- Show each analyzer pass as `Code analyzer iteration N started`
+- Show the file queue for the current cleanup group
+- If a file fails, return the findings to `developer`, fix only the affected files, and rerun validation for the affected modified files in the current group
+- If additional files are modified during the fix, add them to the current validation queue
+- Do not silently ignore analyzer failures
+- Treat analyzer results as a strong validation source, but not as an infinite-stop requirement when the remaining failures are narrow, repeated, or likely analyzer/rule friction
+
+If `../ia-analyzer` does not exist:
+- Use the previous internal fallback flow for modified files: `developer` fixes, `code-reviewer` reviews the changed files, and iterate until the group is clean or clearly blocked
+
+### Browser Validation
+
+When a cleanup group affects a local visible flow:
+- Read the project URL from `.env`, preferring `APP_URL`
+- If the URL does not include a scheme, prepend `http://`
+- Open the relevant flow by connecting Playwright over CDP to a user-opened Chrome session
+- When auth is required, ask the user to log in manually in that Chrome session before traversal starts
+- Reload after code changes before checking the updated flow
+- Confirm the flow still behaves the same from the user's perspective
+- Report blockers such as auth state, missing server, missing seed data, or unavailable route
+
+Command-line checks, runtime checks, or Code Analysis do not replace visible browser validation for a user-facing flow when Playwright CDP validation is available.
+
+### Validation Failure Rules
+
+If validation fails:
+- Keep the scope on the current cleanup group
+- Fix the specific issue
+- Revalidate the affected files and visible flow
+- Do not keep broadening scope while a group is still failing
+
+Analyzer stall rules:
+- Try to fix repeated analyzer failures for the current file or tightly coupled file set before giving up
+- Stop the current analyzer loop for that file or file set after 5 implementation attempts, or earlier if 2 consecutive attempts produce no meaningful code change or no new evidence
+- If the analyzer keeps rejecting a file after meaningful attempts, classify the remaining result as one of:
+  - real cleanup issue still pending
+  - likely analyzer inconsistency or rule friction
+  - larger refactor that exceeds the cleanup timebox
+- Record that classification in the coverage report and continue to the next file in the same area when possible
+- Do not let one stubborn file block the rest of the cleanup area forever
+- If several files in the same area stall for the same root cause, mark the area partially blocked, summarize the shared blocker, and continue to the next cleanup area
+
+Continuation rules:
+- Prefer continuing with the next file over ending the whole cleanup run when the current file is the only blocker
+- Prefer continuing with the next cleanup group over ending the whole cleanup run when the current group is partially blocked but the remaining groups are independent
+- A partially blocked cleanup run is still successful if it materially improved the covered files, validated what it could, and clearly reported what remained open
+- Final status should distinguish between fully validated cleanup groups and groups closed with reported blockers or inconsistencies
+
+If a cleanup group stalls:
+- Stop after 5 implementation attempts for that group, or earlier if 2 consecutive attempts produce no new evidence
+- Mark the group as blocked
+- Continue to the next independent cleanup group only after the blocked files are explicitly listed in the area coverage report
+- Report the blocker clearly in the final summary
+
+---
+
+## Phase 6 - Commit Rules
+
+If commits are allowed for the cleanup run:
+- Create one commit per validated cleanup group as the default behavior
+- If the user explicitly asked for per-file commits, use one commit per modified file only when the files are independently valid and separable
+- If multiple modified files are inseparable for one cleanup fix, create the smallest coherent cleanup-group commit and say why
 - Stage only the files that belong to the current validated cleanup unit
 - Do not mix unrelated cleanup work in the same commit
-- Do not imply that unit tests were executed when the visible trace is only a reporting format
 - Do not push unless the user explicitly asks
 
-### Cleanup Commit Preference
-
-Before the first cleanup implementation commit, confirm the commit mode for the run:
-- `Commit per validated cleanup group`
-- `Commit per modified file`
-- `No commits`
-
-Default cleanup commit interpretation:
-- If the user asked for an execution-heavy cleanup run and did not forbid commits, treat `Commit per validated cleanup group` as preferred
-- If files are inseparable, fall back to the smallest validated cleanup group and say why
+If commits are not allowed:
+- Still keep the same cleanup grouping and validation boundaries in the report
 
 ---
 
-## Large Scope Rule
+## Final Summary
 
-If a task would take more than ~15 minutes to fix completely:
-- Split it into phases of 3-5 files or logical groups
-- Present the phases and ask which to start with
-- Never work more than one phase without checking in
-- Keep the visible file-by-file trace and validation counts for each phase
+After all cleanup groups, summarize:
+- What was cleaned and refactored
+- Which groups were fully validated
+- Which groups were blocked or partially completed
+- Files or areas skipped and why
+- Area-by-area coverage totals with `queued`, `reviewed`, `validated`, `blocked`, and `skipped`
+- Validation methods used:
+  - Code Analysis or internal fallback
+  - Playwright CDP browser coverage
+  - artisan/build/runtime checks
+- Reported analyzer inconsistencies or files skipped after repeated attempts
+- Commits created
+- Total cleanup groups processed
+- Total validation iterations
+
+Then include a separate follow-up section for larger items discovered during cleanup but not implemented, such as:
+- Database or schema changes
+- Product/UI redesign opportunities
+- Architectural changes that would alter behavior or require separate approval
+- Significant technical debt that exceeded the cleanup timebox
+
+That recommendations section should inform the user what is worth doing next without mixing those items into the finished cleanup result.
+
+Completion wording rules:
+- Do not say the project, repo, or cleanup run is "clean", "done", or "fully cleaned" just because `git status` is clean
+- Use that wording only when every mandatory cleanup area was either completed, explicitly empty, or explicitly blocked with coverage counts
+- If only part of the cleanup order was processed, say exactly which areas were completed and which areas remain pending
+- A clean working tree is only git state, not cleanup completion
 
 ---
 
-## Wrap Up
+## Rules
 
-After all tasks, summarize:
-- What was fixed
-- What was skipped
-- What still needs attention
-- Total task iterations, file coverage, validation passes, and commits created
-
-Then ask:
-> "¿Te gustaría continuar con /review para profundizar en algún módulo, o con /finish para pulir flujos visibles y documentación?"
-
----
-
-## Output: Copilot Prompt Format
-
-When the user chooses "Generar prompt para Copilot", produce a self-contained prompt that includes:
-- Full context: which files, what's wrong, what the correct version looks like
-- Step-by-step instructions referencing the coding standards and guides in this repository
-- Expected outcome: what should be true when the task is done
-- Edge cases to watch out for
-
-The prompt must be usable by a developer or another AI without needing to ask any clarifying questions.
+- Treat `/cleanup` as active project-wide cleanup execution by default when the user asks for a broad cleanup run
+- Preserve intended behavior unless the user explicitly approves a behavior change
+- Treat explicit cleanup wording as approval to start unless a real ambiguity remains
+- Do not stop after every cleanup task just to request permission to continue
+- Do not end the command with a follow-up question; end with the cleanup result and the separate recommendations section
+- Do not cherry-pick easy files from unrelated areas before earlier cleanup areas were covered
+- Livewire first, then models, then traits, then services, then notifications/policies/observers, then Blade/translations, then routes/config, then tooling/helpers/casts
+- Do not present a clean git working tree as evidence that the cleanup scope was fully covered
+- Keep a visible progress trace throughout the run
+- Validate every modified cleanup group before considering it complete
+- Use Playwright over CDP for user-facing flows when available
+- Use external Code Analysis for modified files when `../ia-analyzer` exists
+- If `../ia-analyzer` does not exist, use the internal `developer` -> `code-reviewer` fallback for modified files
+- Do not let one analyzer-rejected file or one stubborn cleanup group block the rest of the run forever
+- After repeated meaningful attempts, report the blocker or inconsistency and continue with the next independent file or group
+- Record larger non-cleanup issues as final recommendations instead of silently expanding scope
+- Do not claim UI validation when no browser validation happened
+- Do not push unless the user explicitly asks
