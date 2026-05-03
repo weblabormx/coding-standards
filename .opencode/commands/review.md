@@ -71,6 +71,12 @@ If **yes** → continue to Phase 4.
 
 Call the `developer` agent to apply the approved fixes.
 
+Correction scope rules:
+- Implement only the findings approved for correction and the minimum code needed to satisfy them.
+- Do not reformat, reorder, or style-clean unrelated lines while fixing review findings.
+- Do not change standards documentation during `/review` unless the user explicitly asked to update rules; use `/add-rules` for standards-rule changes.
+- Treat mechanical PHP formatting as formatter-owned. In Weblabor projects, Laravel Pint through Weblabor Coding Standards is the current source of truth for Pint/PHP-CS-Fixer-compatible formatting, so do not ask `developer` to fight formatter output.
+
 After the developer modifies files:
 
 1. Compare the working tree to the baseline recorded before fixes.

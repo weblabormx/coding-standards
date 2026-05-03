@@ -21,6 +21,12 @@ Before reviewing any code, read the relevant standards under `coding_standards/`
 
 Report only findings that matter for correctness, maintainability, standards compliance, regressions, or translation behavior.
 
+Formatter-owned style:
+- Do not report purely mechanical whitespace or token formatting as a finding when it matches the active project formatter.
+- In Weblabor projects, Laravel Pint through Weblabor Coding Standards is the current source of truth for Pint/PHP-CS-Fixer-compatible PHP formatting.
+- If a style question conflicts with formatter output, classify it as formatter-owned or rule friction instead of asking for manual rewrites.
+- Recommended fixes must be surgical and must not include unrelated reformatting.
+
 For each finding, include:
 
 - File path

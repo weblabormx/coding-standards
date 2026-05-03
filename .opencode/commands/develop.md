@@ -17,9 +17,13 @@ If the request is already complete and unambiguous, analyst confirms quickly and
 
 ---
 
-## Phase 2 — Confirm Before Implementing
+## Phase 2 — Confirm Or Proceed
 
-Present the confirmed scope to the user. Ask for explicit confirmation before making any changes to the codebase.
+Decide whether explicit user confirmation is needed before changing the codebase.
+
+If the request is small, complete, and unambiguous, do not ask for confirmation. Briefly state the understood scope, record the baseline, and proceed directly to implementation.
+
+Ask for explicit confirmation only when the request is unclear, could reasonably be interpreted in more than one way, affects a broad or risky area, changes data/schema/permissions/security, or requires choosing among implementation options.
 
 If a plan from `/plan` was provided, follow it exactly — do not deviate without asking.
 
@@ -33,7 +37,7 @@ Migration handling before implementation:
 - Never rewrite migrations that may already have been run outside the local development context unless the user explicitly confirms it is safe
 
 Default commit interpretation for this command:
-- Unless the user explicitly forbids commits, create one commit automatically after the confirmed implementation passes validation
+- Unless the user explicitly forbids commits, create one commit automatically after the confirmed or directly-proceeded implementation passes validation
 - Use the confirmed task name or a concise task-based summary as the commit message
 - Do not ask for a separate commit confirmation when the user already confirmed implementation
 - The only valid opt-out is an explicit user instruction to avoid commits
@@ -42,7 +46,7 @@ Default commit interpretation for this command:
 
 ## Phase 3 — Developer Implementation
 
-After confirmation, call the `developer` agent to implement the confirmed scope.
+After confirmation, or immediately for a small and unambiguous request, call the `developer` agent to implement the confirmed scope.
 
 The developer must:
 
@@ -60,7 +64,7 @@ Do not write documentation as part of this command unless the confirmed scope ex
 
 Identify the modified files by comparing the current working tree to the baseline recorded before implementation. Validate only files changed by this command, not unrelated pre-existing dirty files.
 
-Validation is mandatory for every implementation. Choose the strongest practical checks that match what changed, run them before committing, and fix any error found by validation before considering the task complete. Do not stop at code edits only.
+Validation is mandatory for every implementation. Before choosing checks, analyze the concrete files and behavior changed, list the cases or flows that could be affected, and validate the strongest practical subset that proves those cases still work. Run validation before committing, and fix any error found by validation before considering the task complete. Do not stop at code edits only.
 
 Required validation by change type:
 - If PHP, Laravel, Livewire, routes, policies, observers, models, services, config, or backend behavior changed, run the narrowest relevant artisan/runtime checks and any project-specific validation that proves the behavior works
@@ -95,13 +99,12 @@ Validation rules:
 
 If `../ia-analyzer` does not exist, skip external Code Analysis in this command and use focused runtime, artisan, build, or Playwright-over-CDP browser validation that matches the confirmed scope.
 
-When the confirmed scope affects a real user flow in a local project UI:
+When the confirmed scope affects a real user flow in a local project UI, validate it in the browser using Playwright connected over CDP, matching the `/review` browser validation approach:
 
-- Prefer Playwright connected over CDP to a user-opened Chrome session for functional validation.
 - Read the project URL from `.env`, preferring `APP_URL` when available.
 - If the URL does not include a scheme, prepend `http://`.
 - When auth is required, ask the user to open Chrome with remote debugging enabled and log in manually before browser validation.
-- Reload the page after code changes before validating the updated flow.
+- Connect Playwright over CDP to that Chrome session and reload after local code changes before checking the flow.
 - Open the affected route or entry point and confirm the page renders without visible errors.
 - Traverse the relevant in-scope section like `/repair-project`: click visible non-destructive buttons, links, tabs, filters, menus, pagination, and modal open/close controls that belong to the changed section.
 - Do not click destructive actions such as delete, send, charge, publish, reset, or irreversible confirmations unless the user explicitly approved that action as part of validation.
@@ -152,7 +155,8 @@ Stop here. Do not run extra documentation work as part of this command unless ex
 ## Rules
 
 - Never skip the analyst step, even for small changes
-- Never implement without user confirmation after Phase 2
+- Do not ask for confirmation for small, complete, unambiguous requests; proceed directly after recording the scope and baseline
+- Never implement ambiguous, broad, risky, or multi-interpretation requests without explicit user confirmation after Phase 2
 - Unless the user explicitly forbids commits, create one validated commit with the task name after implementation and validation pass
 - Reuse safe unpushed migrations for the same task/schema instead of creating unnecessary follow-up migrations
 - Always run validation that matches the change type before committing, including migrations, frontend proof/build, and browser validation for user-facing flows when available
@@ -161,5 +165,5 @@ Stop here. Do not run extra documentation work as part of this command unless ex
 - Do not write documentation in this flow unless explicitly requested or included in the confirmed scope
 - If `../ia-analyzer` exists, run external Code Analysis for modified code or implementation files in this command
 - If `../ia-analyzer` does not exist, use focused validation that matches the confirmed scope
-- Prefer Playwright over CDP for validating local user-facing flows
+- Use Playwright connected over CDP for validating local user-facing flows when available
 - External Code Analysis belongs in `/develop` and `/review`

@@ -45,6 +45,9 @@ If this agent is invoked directly with implementation authority and no parent co
 
 - Do not define rules or make product decisions
 - Do not expand scope beyond what was specified in requirements
+- Do not reformat or style-clean unrelated code or standards files while implementing a requested fix
+- When editing standards documentation, change only the requested rule text, examples, or necessary nearby context
+- Treat mechanical PHP style as formatter-owned; in Weblabor projects, Laravel Pint through Weblabor Coding Standards is the current source of truth for Pint/PHP-CS-Fixer-compatible formatting
 - Do not ask for confirmation for clear, low-risk, local changes
 - Do not run extra validation steps or write documentation
 - Do not present work to the user directly; return changed files to the command for validation

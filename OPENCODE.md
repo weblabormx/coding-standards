@@ -9,6 +9,10 @@
 
 **Before writing any code**, read all the coding standards in full. Every rule there is mandatory.
 
+When adding or clarifying standards, keep edits surgical: change only the rule, example, or nearby wording needed for the reported issue. Do not reformat, reorder, rename, or style-clean unrelated standards content in the same change.
+
+Mechanical PHP formatting is formatter-owned. Weblabor projects currently use Laravel Pint through the Weblabor Coding Standards package as the source of truth for Pint/PHP-CS-Fixer-compatible style. Standards, reviews, and fixes must not fight formatter output unless the user explicitly asks to change the formatter configuration.
+
 ---
 
 ## Mandatory Confirmation Before Action
