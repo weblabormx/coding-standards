@@ -14,6 +14,8 @@ Do not hardcode assumptions about which Tailwind palette backs a token. For exam
 
 Raw Tailwind palette colors are allowed only when the project has no appropriate token, the value is vendor-required, or the color belongs to a one-off external integration that cannot safely use project tokens. In those cases, the reason must be clear from nearby context.
 
+When reporting a raw palette color violation, include the concrete replacement suggestion instead of only saying the color is not allowed. Preserve the shade when possible and suggest the token that matches the UI intent, for example `text-negative-700` for error text, `bg-warning-50` for warning backgrounds, `text-info-600` for informational links, or `text-default-600` / `text-secondary-600` for neutral gray text. If neutral intent is ambiguous, suggest both likely options and ask the implementer to follow the component's existing `default-*` or `secondary-*` pattern.
+
 ```blade
 {{-- Wrong --}}
 <div class="border border-red-100 bg-red-50 text-red-700">Error</div>
