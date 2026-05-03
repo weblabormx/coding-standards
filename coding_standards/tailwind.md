@@ -4,20 +4,22 @@
 
 ### Colors
 
-**Use only project primary and secondary color tokens.**
+**Use project color tokens instead of raw Tailwind palette colors.**
 
-Do not introduce arbitrary Tailwind color classes (`text-red-500`, `bg-blue-300`, `border-yellow-400`, etc.) unless they map directly to a defined project token. If a color has no defined token, flag it and ask before using it.
+Prefer project-defined color tokens such as `primary-*`, `secondary-*`, `default-*`, `positive-*`, `negative-*`, `warning-*`, and `info-*` instead of raw Tailwind palette classes like `red-*`, `blue-*`, `gray-*`, `slate-*`, `amber-*`, `emerald-*`, or `teal-*`.
 
-Classes using project tokens pass with shades, opacity, and state/variant prefixes: `text-primary-600`, `border-secondary-300`, `focus:ring-primary-600`, `hover:bg-secondary-50`, and similar `primary-*` / `secondary-*` utilities are valid. Do not list primary/secondary token classes as arbitrary colors.
+For brand, layout, surfaces, borders, text, and general UI, use the project token that represents the intent instead of the underlying palette color. For semantic states, use semantic tokens such as `positive-*` for success/active/confirmed states, `negative-*` for error/destructive/failed states, `warning-*` for caution/pending states, and `info-*` for informational/help/notice states. For neutral UI, prefer `default-*` or `secondary-*` according to the component's existing pattern.
 
-Common WireUI/form semantic tokens such as `positive`, `negative`, `warning`, and `info` also pass when used for validation or status states. Still fail raw Tailwind palette colors (`red`, `green`, `blue`, `gray`, `amber`, `rose`, etc.) unless the project explicitly maps them as tokens.
+Do not hardcode assumptions about which Tailwind palette backs a token. For example, do not assume `negative-*` is always red or `primary-*` is always teal; use the token name that matches the UI intent.
+
+Raw Tailwind palette colors are allowed only when the project has no appropriate token, the value is vendor-required, or the color belongs to a one-off external integration that cannot safely use project tokens. In those cases, the reason must be clear from nearby context.
 
 ```blade
 {{-- Wrong --}}
-<button class="bg-blue-600 text-white">Guardar</button>
+<div class="border border-red-100 bg-red-50 text-red-700">Error</div>
 
 {{-- Correct --}}
-<button class="bg-primary text-white">Guardar</button>
+<div class="border border-negative-100 bg-negative-50 text-negative-700">Error</div>
 ```
 
 ### Dark Mode
