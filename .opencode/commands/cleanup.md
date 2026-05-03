@@ -92,7 +92,7 @@ If the user already asked for an execution-heavy run, use that as the default in
 For this command, an explicit invocation such as `/cleanup`, "limpia el proyecto", "refactoriza todo", or "dejalo al punto" counts as approval to start the cleanup run unless the user added a restriction that still needs clarification.
 
 Default commit interpretation:
-- If the user asked for a long cleanup run and did not forbid commits, present `Commit per validated cleanup group` as the selected default
+- If the user asked for a long cleanup run and did not forbid commits, present `Commit per improved primary file` as the selected default
 - If commit preference is unclear and the run is interactive, state the default instead of leaving commit behavior implicit
 
 Do not ask for per-group approval, per-phase approval, or end-of-run approval. The command should either continue automatically, stop on a real blocker, or finish and report.
@@ -216,7 +216,7 @@ For each cleanup group:
 Visible progress rules:
 - Report progress in the user's language at least every 15 minutes during long runs
 - Report the active area name and coverage counts whenever the command enters a new area
-- Report when a cleanup group starts, when it passes validation, when it is blocked, and when it is committed
+- Report when a cleanup group starts, when it passes validation, when it is blocked, and when an improved primary file is committed
 - Keep a visible file-by-file or pair-by-pair trace
 - For each materially validated step, emit a visible pass/fail style line so the user can see what passed, failed, or was blocked
 - For each unchanged file that was reviewed, emit a visible `PASS reviewed-no-change` line or include it in the next area ledger update
@@ -333,10 +333,10 @@ If a cleanup group stalls:
 ## Phase 6 - Commit Rules
 
 If commits are allowed for the cleanup run:
-- Create one commit per validated cleanup group as the default behavior
-- If the user explicitly asked for per-file commits, use one commit per modified file only when the files are independently valid and separable
-- If multiple modified files are inseparable for one cleanup fix, create the smallest coherent cleanup-group commit and say why
-- Stage only the files that belong to the current validated cleanup unit
+- Create one commit per improved primary file as the default behavior
+- When improving one primary file requires related changes in paired views, translations, tests, helpers, or other directly coupled files, include those related files in the same commit and keep the commit message focused on the primary file improvement
+- If multiple primary files are inseparable for one cleanup fix, create the smallest coherent cleanup commit and say why it could not be split as one improved file per commit
+- Stage only the files that belong to the current validated file improvement
 - Do not mix unrelated cleanup work in the same commit
 - Do not push unless the user explicitly asks
 
