@@ -6,6 +6,24 @@
 
 - Reuse existing Blade components — do not duplicate markup
 
+### Prefer Project Form Components
+
+Use project form components such as `<x-input>`, `<x-select>`, `<x-textarea>`, `<x-checkbox>`, `<x-radio>`, and other existing internal or WireUI form components instead of raw HTML form controls in application forms.
+
+Avoid raw `<input>`, `<select>`, `<option>`, `<textarea>`, and similar controls when an equivalent project component exists. Project components provide consistent styling, labels, errors, accessibility, Livewire behavior, and validation presentation.
+
+Raw HTML controls are allowed for hidden inputs, vendor-required markup, small browser-native controls with no project component equivalent, or cases where the existing component cannot support the required behavior. When using a raw control, the reason should be clear from nearby context.
+
+```blade
+{{-- Wrong --}}
+<select wire:model="user.role">
+    <option value="admin">{{ __('Admin') }}</option>
+</select>
+
+{{-- Correct --}}
+<x-select wire:model="user.role" :options="$roleOptions" option-key-value />
+```
+
 ### `x-select` Options Format
 
 If using x-select input, always use `option-key-value`. Never use `option-label`/`option-value` with manually mapped arrays.
