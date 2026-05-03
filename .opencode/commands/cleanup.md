@@ -1,6 +1,6 @@
 ---
 name: cleanup
- description: Use this command when the project already works and the user wants project-wide cleanup, refactor, standards alignment, or internal code quality improvements without changing the intended behavior. Triggers when the user says "limpia el proyecto", "refactoriza todo", "dejalo al punto", "cleanup", or anything suggesting broad execution-heavy cleanup. It should actively clean the codebase in small validated groups, preserve visible behavior and business logic, validate each modified group with Code Analysis when available plus Playwright-over-CDP browser validation for user-facing flows, keep a visible progress trace, and leave larger architectural or product recommendations for the final summary. Do NOT use to repair a broken branch/project after a merge, Laravel upgrade, base update, or branch divergence — use /repair-project for that. Do NOT use to implement new features — use /develop for that. Do NOT use for a narrow file/module-only request — use /review for that.
+description: Use this command when the project already works and the user wants project-wide cleanup, refactor, standards alignment, or internal code quality improvements without changing the intended behavior. Triggers when the user says "limpia el proyecto", "refactoriza todo", "dejalo al punto", "cleanup", or anything suggesting broad execution-heavy cleanup. It should actively clean the codebase in small validated groups, preserve visible behavior and business logic, review every relevant file in strict area order, maintain an explicit per-file coverage ledger, validate each modified group with Code Analysis when available plus Playwright-over-CDP browser validation for user-facing flows, keep a visible progress trace, and leave larger architectural or product recommendations for the final summary. Do NOT use to repair a broken branch/project after a merge, Laravel upgrade, Weblabor Base update, dependency update, branch divergence, or copy from another project — use /repair-project for that. Do NOT use to implement new features — use /develop for that. Do NOT use for a narrow file/module-only request — use /review for that.
 ---
 
 # /cleanup - Project Cleanup And Refactor
@@ -12,10 +12,18 @@ Treat this command as an execution-heavy cleanup flow, not as a report-only audi
 Core behavior:
 - Refactor and clean the project proactively in small validated groups
 - Preserve the same visible behavior, business logic, routes, permissions, and data behavior unless a strictly behavior-preserving fix requires a minimal adjustment
+- Review every relevant file in the cleanup order, including files that do not need edits
+- Maintain a visible per-file coverage ledger with a terminal status for every discovered file
 - Keep the user informed with a visible progress trace while continuing automatically
 - Validate each modified cleanup group before moving on
 - Record larger issues, risky changes, schema changes, new features, or product recommendations for the final summary instead of expanding scope mid-run
 - Traverse the codebase in strict cleanup order instead of cherry-picking easy wins from unrelated areas
+
+Coverage contract:
+- Cleanup is not complete just because several groups were improved or the git tree is clean
+- A broad cleanup run must either review, clean, validate, skip with reason, or block with reason every relevant file discovered in the mandatory cleanup areas
+- Files that are inspected but left unchanged still count as `reviewed`, not `validated`, unless a concrete validation method was run for them
+- The final summary must include a test-like coverage report so the user can see exactly what was checked, changed, validated, skipped, or blocked
 
 If the project is currently broken after a merge, Laravel upgrade, Weblabor Base update, dependency update, branch divergence, or copy from another project, stop and recommend `/repair-project` first. Cleanup happens after repair, not before.
 
@@ -97,6 +105,8 @@ Do not start file modifications until this single run-level confirmation has bee
 
 Create and maintain a cleanup checklist before the first code edit. Each item must be a cleanup group that can usually be completed and validated in about 10-15 minutes.
 
+Before editing any file in an area, discover that area's full file queue with deterministic commands such as `find` or `rg --files`. The queue must include every relevant implementation file in the area, not only the files that look likely to need changes.
+
 Strict default cleanup order:
 
 1. Livewire components and their paired views
@@ -124,6 +134,7 @@ For each cleanup group, capture:
 - Area name
 - File queue
 - Total files discovered in that area
+- Per-file status ledger
 - Why those files belong together
 - Expected cleanup work
 - Validation method
@@ -134,10 +145,30 @@ For each cleanup group, capture:
 Coverage rules:
 - Build the file queue for the entire active area before cleaning the first file in that area
 - Report queue counts for the active area and keep them updated as `queued`, `reviewed`, `cleaned`, `validated`, `blocked`, and `skipped`
+- Assign every discovered file exactly one terminal status before leaving the area: `validated`, `reviewed-no-change`, `cleaned-unvalidated-fallback`, `blocked`, or `skipped`
+- Use `validated` only when a concrete validation was run after the relevant review or edit
+- Use `reviewed-no-change` when the file was inspected, no cleanup-safe change was needed, and no file-specific validation was run
+- Use `cleaned-unvalidated-fallback` only when the file was changed and the strongest available validation could not be run; explain the missing validation
+- Use `blocked` when cleanup is needed but cannot be completed safely in this command; include the blocker
+- Use `skipped` only for files discovered in the queue but explicitly out of cleanup scope; include the reason
 - Do not jump to a later cleanup area while the current area still has unreviewed files, unless the current area is empty or blocked by a real environment limitation
 - Do not pick opportunistic files from later areas just because they are easier or already familiar
 - If the project contains both Livewire classes and their Blade views, Livewire must be the first cleanup area processed
 - If the project has no files for an area, state `0 files` and move to the next area
+
+Coverage ledger format:
+
+```text
+Área: {area name}
+Archivos: total={n}, queued={n}, reviewed={n}, cleaned={n}, validated={n}, blocked={n}, skipped={n}
+- PASS validated {path} — {validation evidence}
+- PASS reviewed-no-change {path} — {what was checked}
+- WARN cleaned-unvalidated-fallback {path} — {fallback used and missing validation}
+- BLOCKED {path} — {blocker}
+- SKIPPED {path} — {reason}
+```
+
+The ledger is reporting evidence. It must not claim unit tests, browser checks, analyzer passes, or builds unless those checks actually ran.
 
 If a group is too large:
 - Split it into phases of 3-5 files or the smallest coherent subsets
@@ -188,6 +219,7 @@ Visible progress rules:
 - Report when a cleanup group starts, when it passes validation, when it is blocked, and when it is committed
 - Keep a visible file-by-file or pair-by-pair trace
 - For each materially validated step, emit a visible pass/fail style line so the user can see what passed, failed, or was blocked
+- For each unchanged file that was reviewed, emit a visible `PASS reviewed-no-change` line or include it in the next area ledger update
 - Treat those lines as reporting evidence only. Do not imply that unit tests ran unless they actually ran
 
 The command should feel like an active cleanup session, not a passive audit.
@@ -203,6 +235,7 @@ Within each cleanup group:
 - Keep edits closely scoped to the cleanup group
 - Prefer behavior-preserving refactors over stylistic churn
 - Avoid broad rewrites when a smaller cleanup achieves the same result
+- Mark unchanged inspected files as `reviewed-no-change` with the specific standard or convention that was checked
 - If a file is skipped, say why
 - If a file is deferred because it would change behavior or needs a larger design change, count it as `blocked` or `recommendation`, not as silently skipped or completed
 
@@ -319,7 +352,8 @@ After all cleanup groups, summarize:
 - Which groups were fully validated
 - Which groups were blocked or partially completed
 - Files or areas skipped and why
-- Area-by-area coverage totals with `queued`, `reviewed`, `validated`, `blocked`, and `skipped`
+- Area-by-area coverage totals with `queued`, `reviewed`, `cleaned`, `validated`, `blocked`, and `skipped`
+- A per-area file ledger with PASS/WARN/BLOCKED/SKIPPED evidence lines, grouped like a test report
 - Validation methods used:
   - Code Analysis or internal fallback
   - Playwright CDP browser coverage
@@ -342,6 +376,7 @@ Completion wording rules:
 - Use that wording only when every mandatory cleanup area was either completed, explicitly empty, or explicitly blocked with coverage counts
 - If only part of the cleanup order was processed, say exactly which areas were completed and which areas remain pending
 - A clean working tree is only git state, not cleanup completion
+- If the final summary does not include the area-by-area ledger, say the run produced code changes but did not satisfy the cleanup reporting contract
 
 ---
 
@@ -350,6 +385,8 @@ Completion wording rules:
 - Treat `/cleanup` as active project-wide cleanup execution by default when the user asks for a broad cleanup run
 - Preserve intended behavior unless the user explicitly approves a behavior change
 - Treat explicit cleanup wording as approval to start unless a real ambiguity remains
+- Review every relevant file in strict cleanup order; unchanged files still require an explicit reviewed status
+- Maintain and report the per-file coverage ledger throughout the run
 - Do not stop after every cleanup task just to request permission to continue
 - Do not end the command with a follow-up question; end with the cleanup result and the separate recommendations section
 - Do not cherry-pick easy files from unrelated areas before earlier cleanup areas were covered

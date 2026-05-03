@@ -12,6 +12,11 @@
 - Only fail this rule when the text is clearly user-facing in the running product (notifications, dialogs, labels, buttons, headings, validation messages, emails, Blade output). Do not fail for internal log labels, debugging text, shell snippets, or purely developer-facing comments.
 - Do not fail internal guard-clause exception messages, invariant checks, or developer-oriented thrown error text unless the code clearly renders that exact message to end users in the product response or UI.
 - Strings already wrapped in translation helpers such as `__()`, `trans()`, or `@lang()` pass this rule. In projects that use Laravel JSON translations, the English string inside `__()` is itself the translation key and must not be treated as hardcoded UI copy.
+- Do not fail English user-facing labels under this rule merely because they are hardcoded in PHP. This rule enforces English code and prevents Spanish UI copy from living directly in code; it is not a blanket translation-wrapper rule for every English label unless another rule explicitly says so.
+- If a literal user-facing string is already English, this Language & Text rule passes even when the string is not wrapped in `__()`. Prefer translation helpers where the surrounding code uses them, but do not fail English copy under this rule solely for missing translation wrappers.
+- Do not treat proper nouns, country names, currency names, currency codes, or locale option labels written in English as Spanish text just because they refer to Spanish-speaking countries or currencies (for example `MX - Mexico`, `AR - Argentina`, `MXN - Mexican Peso`).
+- Do not fail currency symbols, currency codes, date/number formatting fragments, or other locale-neutral display formatting as hardcoded language text when they contain no Spanish words.
+- Do not apply the “Spanish text in code” failure to translation files under `lang/es`, `lang/*`, or other locale resource files. Spanish copy belongs in Spanish translation files; the rule is to move Spanish UI copy out of PHP/Blade source into those lang files, not to ban Spanish translations.
 
 ### Code Cleanliness
 
@@ -24,7 +29,16 @@
 - Do not fail just because a callback, closure, process collector, or helper method is used once. Fail only when inlining would clearly improve readability and the extracted piece does not name a meaningful concept.
 - Do not fail a short intermediate variable when it carries useful type context, avoids repeating a long chain, or makes a side effect call clearer (for example a documented authenticated user before `notify()`).
 - Do not fail small framework lifecycle, convention, or contract methods whose value is their recognized name and integration point, even if they are short. Examples include `rules()`, `validationAttributes()`, `validationMessages()`, `casts()`, and similar framework hook methods.
-- Do not fail explicit scalar or boolean return types on short predicate, capability, or query helper methods (for example `isActive(): bool`, `canBeDeleted(): bool`) when the type materially clarifies intent and does not conflict with a visible contract or local style in the file.
+- Do not fail explicit scalar or boolean return types on short predicate, capability, query, or calculation helper methods (for example `isActive(): bool`, `canBeDeleted(): bool`, `trackedSecondsFor(): int`) when the type materially clarifies intent and does not conflict with a visible contract or local style in the file.
+- If a method name clearly communicates a boolean answer (`can*`, `has*`, `is*`, `should*`) or a numeric calculation (`*Count`, `*Total`, `*Seconds`, `*Amount`), treat a matching scalar return type as allowed unless the surrounding file consistently omits return types for comparable helpers.
+- Do not fail enum/helper predicate methods such as `is($name): bool`; the boolean return type is allowed because it documents the predicate contract.
+
+### Formatter-Owned Style
+
+- Follow the project's configured formatter for purely mechanical whitespace and token style.
+- Do not report formatter-owned style as a manual cleanup finding unless it contradicts the formatter output or the formatter is unavailable.
+- For string concatenation, follow the active Pint/PHP-CS-Fixer configuration. In Weblabor projects that use `weblabormx/weblabor-cs`, concatenation uses one space around the `.` operator: `$prefix . '_suffix'`.
+- Do not "clean up" concatenation by removing those spaces in projects using the Weblabor formatter config.
 
 ```php
 // Correct
@@ -41,6 +55,8 @@ public static function all(): Collection
 ```
 
 **Exception:** When a method must keep a return type to satisfy a PHP compatibility contract, you **must** keep the same return type. This includes overriding a parent method, implementing an interface method, fulfilling an abstract method, or preserving a framework/library contract that the class explicitly declares. Removing it causes a fatal error or breaks the declared integration.
+
+Laravel migration methods `up(): void` and `down(): void` are allowed because they follow Laravel's migration stub/contract conventions. Do not fail those return types.
 
 ```php
 // Correct — parent declares BelongsToMany, override must match
@@ -68,11 +84,14 @@ Before removing a return type, check whether the method satisfies any declared p
 
 - Always declare classes with `use` statements at the top of the file
 - Never use fully qualified class names inline
-- Group imports from the same namespace: `use App\Models\{User, Plan};`
+- Follow Laravel Pint import formatting. Do not group imports with curly-brace syntax when Pint separates them into individual `use` statements.
 - This rule applies to class-like symbols (`new \Foo\Bar`, `\Foo\Bar::class`, `catch (\Throwable $e)`, return/param/property type declarations). It does **not** apply to plain function calls or Laravel/global helpers such as `trim()`, `now()`, `str()`, or `abort()`.
 - If the only inline backslashes in the file are function/helper calls such as `\trim()` or `\now()`, this rule passes.
 - Do not fail short class names that already resolve through the file's current namespace (for example `BillingPlan::class` inside `namespace App\Models;`). This rule is about inline fully qualified names with backslashes or missing imports for out-of-namespace classes, not normal short references to neighbors in the same namespace.
 - Do not infer that a short class name is out-of-namespace solely because there is no `use` statement. If the reference has no namespace separator and the file namespace plausibly resolves it (for example neighboring models inside `App\Models`), it passes.
+- Do not fail sibling classes in the same declared namespace, even when they live in the same folder and have no `use` statement. For example, inside `namespace App\Classes\HtmlFormatter;`, `new DesminifyHtml`, `new CommentRemover`, and `new ResolveRelativeUrls` pass because they resolve to that namespace.
+- This same-namespace exception applies to static calls and dispatch helpers too. For example, inside `namespace App\Jobs;`, `PloiConfigureDeployAfter::dispatch(...)` passes without a `use` statement because it resolves to `App\Jobs\PloiConfigureDeployAfter`.
+- Do not fail Laravel framework configuration arrays that conventionally use inline class references, such as `app/Http/Kernel.php` middleware stacks, route middleware aliases, exception handler maps, service provider lists, or config files. These arrays are declarations/configuration, not executable class construction, and Laravel's default stubs commonly use `\Foo\Bar::class` inline there.
 
 ```php
 // Correct — helper calls are not class names

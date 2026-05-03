@@ -7,6 +7,8 @@
 Controllers are not part of the standard architecture
 - Use Livewire components instead
 - Exception: only when Livewire clearly does not make sense
+- Honor an adjacent explicit exception comment when it explains why the route is not a Livewire UI flow, such as vendor diagnostic endpoints, file/download responses, OAuth or external callbacks, browser API callbacks, or other headless endpoints.
+- Do not fail a controller route merely because it is a controller when the reviewed route itself documents a concrete non-Livewire reason. Fail only if the exception is missing, vague, or contradicted by the route being a normal user-facing screen.
 
 ### CRUD Architecture
 

@@ -8,9 +8,14 @@
 - Model internal organization order: **Static Functions → Functions → Scopes → Relationships → Attributes**
 - Do not mix responsibilities or add decorative comments
 - Short section comments that mark real structural groups such as `Static Functions`, `Functions`, `Scopes`, `Relationships`, and `Attributes` are allowed when they help scan a larger model. Do not fail just because these organization comments exist or because one group is split into two nearby blocks while the overall order still stays coherent.
+- The organization order is relative, not mandatory. Do not fail because a model omits an empty group such as `Static Functions`; only fail when groups or methods that actually exist are out of order.
+- A `Functions` section may be the first section in a model when there are no static methods. This still satisfies the order because there is no `Static Functions` content to place before it.
 - Accessors: only for presentation, formatting, and read-only transformations
+- Eloquent accessors and mutators belong in the `Attributes` section, including both modern `Attribute` return methods and legacy `getFooAttribute()` / `setFooAttribute()` methods. Do not treat legacy accessors as ordinary Functions for ordering purposes.
 - Relationship names must reflect exactly what they return — do not add qualifiers (`Included`, `Active`, `List`) unless multiple relationships of the same type exist on the model (e.g. `addOns` is correct; `addOnsIncluded` is only valid if `addOnsExcluded` also exists)
-- Static query/finder methods must be named after what they **return**, not how they filter — e.g. `getPricesByInterval`, not `findByInterval`
+- Static query/finder methods must name what they **return**. They may also include the relevant filter after the returned noun — e.g. `getPricesByInterval` is valid because it returns prices and filters by interval; `findByInterval` is invalid because it names only the filter and hides what is returned.
+- Do not fail a method like `getUsersByRole`, `pricesForCountry`, or `getPricesByInterval` merely because the name includes a filter. Fail only when the returned subject is missing or misleading.
+- Static methods do not have to start with `get` or `find` when the noun already states the returned subject clearly. Names such as `billingPriceVariations`, `countryOptions`, `currencyOptions`, and `availableIntervals` are valid return-subject names.
 
 ### Rich Domain Models
 
@@ -61,9 +66,12 @@ throw ValidationException::withMessages([
 - All date fields must define a **cast**
 - Do not manually convert dates in Livewire
 - Do not format dates manually when a cast applies
+- Assigning `now()`, a `Carbon` instance, or another date object/string to an attribute that is already listed in `$casts` as `date`/`datetime` is allowed. That is normal Eloquent cast usage, not manual conversion.
+- Fail manual date conversion only when the code parses/formats/timezone-converts the value itself (`Carbon::parse(...)->format(...)`, `date(...)`, `setTimezone(...)`, etc.) or when a local date attribute is used without a required cast.
 - Do not fail this rule by inferring framework-managed or inherited date fields that are not declared in the reviewed file. Require concrete evidence from the file itself that it owns a date attribute without the needed cast, or that it manually formats/converts a date where the existing casted value should have been used directly.
 - Do not fail when the formatted date belongs to a related or external model and is being rendered into a user-facing message or label. This rule targets the reviewed model's own persisted attributes and redundant local date conversions, not ordinary presentation of already-available related dates.
 - Do not fail this rule just because the model uses framework traits such as `SoftDeletes` or inherited timestamps that imply dates like `deleted_at`, `created_at`, or `updated_at`. Those framework-managed dates need explicit casts only when the reviewed file itself overrides or depends on custom local casting behavior.
+- `SoftDeletes` alone is never evidence of a missing date cast. Do not infer a `deleted_at` violation from the trait import/use statement; require an explicit local `deleted_at` attribute assignment, manual conversion, or custom date handling in the reviewed file before failing.
 
 Casts must be used for: Dates, Booleans, Arrays/JSON, Enums.
 Do not replace casts with accessors or manual transformations.
@@ -78,6 +86,7 @@ Do not replace casts with accessors or manual transformations.
 - Enum business logic must live inside the Enum
 - Do not branch logic based on enum cases inside Models
 - Apply this rule only when the reviewed code actually uses an enum-backed attribute or branches directly on enum cases/state objects. Ordinary boolean guards, null checks, subscription status methods, or other non-enum domain conditionals do not fail this rule.
+- Do not fail presentation-only accessors that derive display labels or CSS classes from a boolean/null/numeric calculation (for example paid/unpaid based on `paid_at` or `missing_cost`) unless the model owns a persisted multi-state attribute that should be enum-backed. This rule targets state management, not simple display formatting.
 
 ```php
 // Correct

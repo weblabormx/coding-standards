@@ -6,9 +6,13 @@
 
 Services exist to communicate with **external systems** (Stripe, APIs, third-party integrations). They must not contain domain logic that belongs in a model, and must not manage model state directly.
 
+Payment services may call framework SDK methods that perform external billing workflows, such as Laravel Cashier subscription builders, subscription lifecycle methods (`newSubscription()`, `checkout()`, `cancelNow()`, `addPriceAndInvoice()`, `removePrice()`, `swap()`), and payment-method methods (`addPaymentMethod()`, `updateDefaultPaymentMethod()`, `deletePaymentMethod()`). Treat those as external Stripe operations, not ordinary domain model writes, as long as the service is not manually assigning unrelated Eloquent attributes or calling generic persistence methods for app-owned state.
+
 ### Services are read-only with respect to models
 
 A service must never call `save()`, `update()`, `updateQuietly()`, or assign attributes on any model it receives. Services only read models and communicate results via return values. The observer or caller that invoked the service is responsible for persisting any returned data.
+
+Do not fail Cashier or SDK lifecycle/payment-method calls solely because the SDK also syncs local billing records. Fail generic Eloquent writes (`save`, `update`, attribute assignment) to app-owned domain state; allow external-system SDK operations inside services whose purpose is that integration.
 
 ```php
 // Correct — service returns the Stripe ID, observer assigns it before INSERT
@@ -62,6 +66,8 @@ app(StripeSyncService::class)->archivePrice($price);
 ### Services communicate results via return values
 
 When a service creates a resource in an external system and an ID must be persisted, the service returns that ID. The caller (observer or model) persists it.
+
+If no caller-owned ID or field needs to be persisted, the service may return a small result payload/DTO such as `success`, `message`, `action`, or `url` to describe the external workflow outcome. Do not require an ID return for checkout redirects, toggles, cancellations, or other operations where the SDK handles persistence internally.
 
 ```php
 // Correct

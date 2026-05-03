@@ -22,6 +22,8 @@ Every blade that reads or mutates protected resources must enforce authorization
 - Action buttons (delete, migrate, edit) must be wrapped in `@can` / `@cannot` directives
 - Never duplicate policy logic inside the view. If the policy already checks a condition (e.g. `hasSubscribers`), do not re-check it in Blade — trust the policy
 - The `@can` wrapper controls visibility only; the Livewire component must still have its authoritative server-side guard at the component level, normally in `mount()` as defined in `coding_standards/livewire.md`
+- Do not require `@can` for non-mutating UI controls such as `closeModal`, `cancel`, tab switches, filters, pagination, or other purely local UI state actions.
+- Do not require an additional `@can` wrapper inside a dedicated Livewire modal/component view when the component itself authorizes the protected resource at mount/component level. The Blade rule guards visibility in parent/list views; it must not duplicate the component-level authorization rule for every button inside an already-authorized component.
 
 ```blade
 {{-- Correct — policy handles all conditions internally --}}
@@ -52,6 +54,8 @@ Never add HTML validation attributes (`required`, `min`, `max`, `pattern`, etc.)
 ### Modals Must Use wire-elements/modal
 
 All modals must use the `wire-elements/modal` package (`LivewireUI\Modal\ModalComponent`). Never use WireUI's `<x-modal wire:model="...">` embedded inside a parent component.
+
+When reviewing the Blade view that belongs to a `LivewireUI\Modal\ModalComponent`, do not fail because the view contains modal form fields, buttons, `closeModal`, or save/confirm actions. That is the correct dedicated modal body. Fail this rule only for parent views/components that embed WireUI `<x-modal>` or keep modal-specific form logic in the parent instead of opening a dedicated modal component.
 
 **Why:** WireUI modals force all modal logic (form fields, validation, save) into the parent component, mixing concerns. Wire Elements modals are fully independent Livewire components.
 

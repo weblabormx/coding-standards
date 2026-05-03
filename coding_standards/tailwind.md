@@ -8,6 +8,10 @@
 
 Do not introduce arbitrary Tailwind color classes (`text-red-500`, `bg-blue-300`, `border-yellow-400`, etc.) unless they map directly to a defined project token. If a color has no defined token, flag it and ask before using it.
 
+Classes using project tokens pass with shades, opacity, and state/variant prefixes: `text-primary-600`, `border-secondary-300`, `focus:ring-primary-600`, `hover:bg-secondary-50`, and similar `primary-*` / `secondary-*` utilities are valid. Do not list primary/secondary token classes as arbitrary colors.
+
+Common WireUI/form semantic tokens such as `positive`, `negative`, `warning`, and `info` also pass when used for validation or status states. Still fail raw Tailwind palette colors (`red`, `green`, `blue`, `gray`, `amber`, `rose`, etc.) unless the project explicitly maps them as tokens.
+
 ```blade
 {{-- Wrong --}}
 <button class="bg-blue-600 text-white">Guardar</button>
@@ -36,6 +40,8 @@ Dark mode is not in use. Remove any `dark:` prefixed classes found in existing c
 
 This applies to `<button>`, `<a>`, and any element with a Livewire action (`wire:click`) or Alpine action (`@click`) that the user can interact with.
 
+Do not fail design-system Blade components such as `<x-button>`, `<x-link>`, or other interactive `x-*` components solely because the Blade invocation does not include a `hover:` utility. These components own their rendered hover styles internally. Apply this rule to raw HTML elements or custom wrappers where the reviewed class list controls the actual interactive styling.
+
 ```blade
 {{-- Wrong --}}
 <button class="bg-primary text-white px-4 py-2">Guardar</button>
@@ -47,6 +53,8 @@ This applies to `<button>`, `<a>`, and any element with a Livewire action (`wire
 ### Cursor
 
 **Interactive elements must have `cursor-pointer`. Non-interactive elements must not.**
+
+Treat any element with an active `wire:click`, `x-on:click`, or `@click` handler as interactive, including table cells and headers. Do not fail `cursor-pointer` on those elements. Do not fail neutral cursor classes such as `cursor-default` or `cursor-text` on non-interactive elements; only flag misleading interactive cursors like `cursor-pointer` on elements with no interaction.
 
 ```blade
 {{-- Wrong: button without cursor --}}
@@ -64,6 +72,8 @@ This applies to `<button>`, `<a>`, and any element with a Livewire action (`wire
 **Do not nest divs unnecessarily.**
 
 A `div` with no styling purpose and a single child should be removed. Every wrapper must have a clear layout or spacing reason.
+
+Do not fail wrappers that provide spacing, padding, borders, overflow, positioning, Alpine/Livewire behavior, conditional boundaries, or semantic grouping for multiple children. A wrapper with classes such as `space-*`, `p-*`, `border`, `overflow-*`, `relative`, `absolute`, `flex`, `grid`, `x-show`, `wire:*`, or multiple meaningful children has a layout or behavior purpose.
 
 ```blade
 {{-- Wrong --}}

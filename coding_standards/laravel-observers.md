@@ -45,9 +45,7 @@ public function updating(BillingPrice $price): void
 private function preventAmountModification(BillingPrice $price): void
 {
     if ($price->isDirty('amount')) {
-        throw ValidationException::withMessages([
-            'prices' => __('The price amount cannot be modified once created.'),
-        ]);
+        throw CannotModifyCreatedPriceAmount::for($price);
     }
 }
 
@@ -61,6 +59,33 @@ private function assignStripePriceId(BillingPrice $price): void
 {
     $price->stripe_price_id = app(StripeSyncService::class)->syncPrice($price);
 }
+```
+
+### No `ValidationException` in Observers
+
+Observers must not throw or import `Illuminate\Validation\ValidationException`. Observers run as model lifecycle infrastructure, so they must not own form/input validation or user-facing field messages.
+
+Flag this rule only when an observer directly imports, throws, or constructs `ValidationException`, or when it uses validation-style exceptions to report normal user-correctable form errors.
+
+When replacing a `ValidationException` in an observer:
+- Move field-level validation and user-facing errors to the Livewire component, form request, action class, or dedicated validation rule before the model is saved.
+- If the caller needs to know whether an expected operation can proceed, expose that decision before the save through a model method, policy, rule, or explicit result from the caller-owned operation.
+- Do not require observer hook methods to return `bool` just because a `ValidationException` was removed. Observer hooks should stay lifecycle handlers; expected user-correctable failures should be handled before the observer runs.
+- Domain-invariant exceptions are allowed when the state is genuinely exceptional and must be blocked at the lifecycle level, but use a domain-specific exception instead of `ValidationException`.
+
+```php
+// Correct — Livewire owns the user-facing validation before save
+if ($this->object->amountCannotBeModified()) {
+    $this->addError('amount', __('The price amount cannot be modified once created.'));
+    return;
+}
+
+$this->object->save();
+
+// Incorrect — observer throws a UI/form validation exception
+throw ValidationException::withMessages([
+    'amount' => __('The price amount cannot be modified once created.'),
+]);
 ```
 
 ### Observer Ownership — Each Observer Handles Its Own Model
@@ -94,4 +119,3 @@ class ParentObserver
 ```
 
 The parent observer only upserts child rows. The child observer reacts to its own model events.
-
