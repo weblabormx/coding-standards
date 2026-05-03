@@ -11,6 +11,7 @@ Treat this command as an execution-heavy cleanup flow, not as a report-only audi
 
 Core behavior:
 - Refactor and clean the project proactively in small validated groups
+- Never perform whitespace-only, trailing-whitespace-only, final-newline-only, blank-line-only, indentation-only, wrapping-only, import-order-only, or cosmetic formatting cleanup unless a concrete project rule explicitly requires the exact hunk
 - Preserve the same visible behavior, business logic, routes, permissions, and data behavior unless a strictly behavior-preserving fix requires a minimal adjustment
 - Review every relevant file in the cleanup order, including files that do not need edits
 - Maintain a visible per-file coverage ledger with a terminal status for every discovered file
@@ -22,6 +23,7 @@ Core behavior:
 Coverage contract:
 - Cleanup is not complete just because several groups were improved or the git tree is clean
 - A broad cleanup run must either review, clean, validate, skip with reason, or block with reason every relevant file discovered in the mandatory cleanup areas
+- Do not present a focused cleanup group as the result of `/cleanup` unless the user explicitly requested a focused/partial cleanup; otherwise continue through the mandatory order or report the run as paused/blocked, not completed
 - Files that are inspected but left unchanged still count as `reviewed`, not `validated`, unless a concrete validation method was run for them
 - The final summary must include a test-like coverage report so the user can see exactly what was checked, changed, validated, skipped, or blocked
 
@@ -64,14 +66,16 @@ Inspect, without modifying files:
 
 Validation expectations:
 - If `../ia-analyzer` exists, use external Code Analysis for modified code or implementation files in this command
-- If a cleaned group affects a user-facing flow and browser validation is possible, use Playwright connected over CDP to a user-opened Chrome session as the primary visible validation for that flow
-- If browser validation is not possible, say so clearly and use the strongest available fallback checks
+- If a cleaned group affects a user-facing flow, browser validation with Playwright connected over CDP is expected unless a concrete blocker is reported
+- Probe common Chrome remote debugging endpoints such as `http://127.0.0.1:9222/json/version`, `:9223`, and `:9224` before declaring CDP unavailable
+- If no CDP endpoint responds, stop before closing the affected group and ask the user for the missing browser setup with a concrete instruction, such as opening Chrome with remote debugging enabled and logging in when auth is required
+- If browser validation remains unavailable after the user cannot provide a CDP session, mark the affected visible-flow validation as `blocked`, not `validated`
 
-If browser validation is unavailable for a user-facing flow, tell the user clearly:
+If browser validation is unavailable for a user-facing flow, tell the user clearly and include the exact endpoints or setup that were tried:
 
-> No pude validar este flujo en el navegador con Playwright por CDP porque falta URL local utilizable, servidor levantado, una sesion autenticada en Chrome con remote debugging, o el entorno necesario. Puedo continuar con cleanup y validaciones de codigo, artisan o build, pero la confianza visual sera menor.
+> No pude validar este flujo en el navegador con Playwright por CDP porque no encontre una sesion de Chrome con remote debugging, falta URL local utilizable, falta servidor levantado, falta autenticacion, o falta el entorno necesario. Necesito que abras Chrome con remote debugging y una sesion autenticada, o que me indiques el puerto CDP correcto, antes de marcar este flujo como validado.
 
-Do not pretend a UI flow was visually validated if it was not opened.
+Do not pretend a UI flow was visually validated if it was not opened. Do not silently downgrade a required browser validation to command-line validation only.
 
 ---
 
@@ -180,6 +184,8 @@ Checklist items must stay cleanup-scoped. Do not add these as active cleanup ite
 - Behavior changes
 - Product/UI redesign requests
 - Broad architecture migrations
+- Whitespace-only cleanup such as trailing spaces, final-newline-only changes, blank-line-only edits, indentation-only edits, wrapping-only edits, or import-order-only edits unless a concrete project rule explicitly requires the exact hunk
+- Test-suite or tooling scaffolding created only to make validation commands runnable, such as adding placeholder test directories or touching config files for final newlines; report missing validation infrastructure as a blocker or follow-up unless the user explicitly included tooling cleanup
 
 Folder and file placement review must still happen, but it is part of the area being processed instead of a separate excuse to roam across the repo. When a file is misplaced, record the placement issue under the current area and fix it there if the move is behavior-preserving.
 
@@ -235,6 +241,9 @@ Within each cleanup group:
 - Keep edits closely scoped to the cleanup group
 - Prefer behavior-preserving refactors over stylistic churn
 - Avoid broad rewrites when a smaller cleanup achieves the same result
+- Do not make whitespace-only, trailing-whitespace-only, final-newline-only, blank-line-only, indentation-only, wrapping-only, import-order-only, or other cosmetic formatting changes unless a concrete cleanup rule explicitly requires that exact change
+- Before validating or committing a cleanup unit, inspect the diff and revert any hunk whose only effect is spacing, trailing whitespace, final newline, blank lines, wrapping, import ordering, or cosmetic formatting not required by a concrete rule
+- Do not run broad auto-formatters or project-wide formatting commands during `/cleanup`; use targeted edits only
 - Mark unchanged inspected files as `reviewed-no-change` with the specific standard or convention that was checked
 - If a file is skipped, say why
 - If a file is deferred because it would change behavior or needs a larger design change, count it as `blocked` or `recommendation`, not as silently skipped or completed
@@ -289,13 +298,15 @@ If `../ia-analyzer` does not exist:
 When a cleanup group affects a local visible flow:
 - Read the project URL from `.env`, preferring `APP_URL`
 - If the URL does not include a scheme, prepend `http://`
+- Probe common Chrome remote debugging endpoints such as `http://127.0.0.1:9222/json/version`, `:9223`, and `:9224`; if the project or user provides another CDP port, try that too
 - Open the relevant flow by connecting Playwright over CDP to a user-opened Chrome session
 - When auth is required, ask the user to log in manually in that Chrome session before traversal starts
+- If no CDP endpoint responds, pause that visible-flow validation and ask the user to provide a Chrome remote debugging session or the correct CDP port instead of silently skipping browser validation
 - Reload after code changes before checking the updated flow
 - Confirm the flow still behaves the same from the user's perspective
-- Report blockers such as auth state, missing server, missing seed data, or unavailable route
+- Report blockers such as auth state, missing server, missing seed data, unavailable route, or unavailable CDP endpoint
 
-Command-line checks, runtime checks, or Code Analysis do not replace visible browser validation for a user-facing flow when Playwright CDP validation is available.
+Command-line checks, runtime checks, or Code Analysis do not replace visible browser validation for a user-facing flow. If browser validation cannot run, mark that visible-flow validation as `blocked` or `cleaned-unvalidated-fallback` with the exact reason and endpoints tried.
 
 ### Validation Failure Rules
 
@@ -319,8 +330,8 @@ Analyzer stall rules:
 Continuation rules:
 - Prefer continuing with the next file over ending the whole cleanup run when the current file is the only blocker
 - Prefer continuing with the next cleanup group over ending the whole cleanup run when the current group is partially blocked but the remaining groups are independent
-- A partially blocked cleanup run is still successful if it materially improved the covered files, validated what it could, and clearly reported what remained open
-- Final status should distinguish between fully validated cleanup groups and groups closed with reported blockers or inconsistencies
+- A partially blocked cleanup run is partial progress, not a completed cleanup; say `PARTIAL` or `BLOCKED` clearly and list the unprocessed areas
+- Final status should distinguish between fully validated cleanup groups, committed file improvements, and groups closed with reported blockers or inconsistencies
 
 If a cleanup group stalls:
 - Stop after 5 implementation attempts for that group, or earlier if 2 consecutive attempts produce no new evidence
@@ -334,10 +345,12 @@ If a cleanup group stalls:
 
 If commits are allowed for the cleanup run:
 - Create one commit per improved primary file as the default behavior
+- Create the commit immediately after that primary file improvement passes its required validation and before moving to the next independent primary file
 - When improving one primary file requires related changes in paired views, translations, tests, helpers, or other directly coupled files, include those related files in the same commit and keep the commit message focused on the primary file improvement
 - If multiple primary files are inseparable for one cleanup fix, create the smallest coherent cleanup commit and say why it could not be split as one improved file per commit
 - Stage only the files that belong to the current validated file improvement
 - Do not mix unrelated cleanup work in the same commit
+- If a commit cannot be created after validation, stop before continuing to unrelated cleanup work, report the exact blocker, and list the uncommitted changed files
 - Do not push unless the user explicitly asks
 
 If commits are not allowed:
@@ -359,7 +372,9 @@ After all cleanup groups, summarize:
   - Playwright CDP browser coverage
   - artisan/build/runtime checks
 - Reported analyzer inconsistencies or files skipped after repeated attempts
-- Commits created
+- Files created or modified by this cleanup run, grouped by committed improvement
+- Commits created with hash and message, or the exact reason a validated improvement was left uncommitted
+- Current `git status` summary after the last commit attempt
 - Total cleanup groups processed
 - Total validation iterations
 
@@ -393,6 +408,7 @@ Completion wording rules:
 - Livewire first, then models, then traits, then services, then notifications/policies/observers, then Blade/translations, then routes/config, then tooling/helpers/casts
 - Do not present a clean git working tree as evidence that the cleanup scope was fully covered
 - Keep a visible progress trace throughout the run
+- Reject whitespace-only, trailing-whitespace-only, final-newline-only, blank-line-only, indentation-only, wrapping-only, import-order-only, and cosmetic formatting diffs unless a concrete cleanup rule explicitly requires them
 - Validate every modified cleanup group before considering it complete
 - Use Playwright over CDP for user-facing flows when available
 - Use external Code Analysis for modified files when `../ia-analyzer` exists
