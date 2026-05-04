@@ -57,6 +57,25 @@ Do not modify sibling repositories automatically. Only modify another repository
 
 ---
 
+## Browser Validation Rule
+
+For local browser validation, visual checks, or UI traversal, use Playwright connected over CDP to a user-opened Chrome session with remote debugging enabled.
+
+Required behavior:
+- Read the local project URL from the project environment when available, preferring `APP_URL`
+- Probe common CDP endpoints such as `http://127.0.0.1:9222/json/version`, `:9223`, and `:9224`; also try any CDP port provided by the user or project
+- Connect Playwright over CDP to that existing Chrome session instead of launching or controlling a separate browser
+- When auth is required, ask the user to log in manually in that Chrome session before validation
+
+Prohibited behavior:
+- Do not use browser skills, browser plugins, in-app browser automation, Selenium, Puppeteer, or any tool that attempts to launch its own browser as a fallback for local validation
+- Do not spend time trying browser approaches that are known to fail in this environment when CDP is unavailable
+- Do not claim a user-facing flow was visually validated unless Playwright CDP, or an explicitly approved equivalent runtime browser path, actually opened and checked it
+
+If no usable CDP endpoint is available, stop browser validation, report the exact endpoints tried, and ask the user to provide a Chrome remote debugging session or the correct CDP port. Continue only with clearly labeled non-browser fallback checks when appropriate.
+
+---
+
 ## Absolute Rule
 
 - **Everything defined in `README.md` is mandatory**

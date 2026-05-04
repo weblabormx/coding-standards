@@ -41,6 +41,7 @@ The important rule is always the same:
 - install globally
 - do not copy anything into the current project
 - keep this repository as the only source of truth
+- for local browser validation, use Playwright over CDP with a user-opened Chrome session; do not use browser skills or launch-your-own-browser fallbacks
 
 ---
 

@@ -6,17 +6,14 @@ Apply these rules only to actual Livewire components, normally classes under `ap
 
 ### Mandatory Structure Order
 
-Keep Livewire components in this order:
+Keep Livewire components in this order (While they exists):
 
 1. `use` statements / traits
 2. Properties
 3. `mount()` when present
 4. Validation rule methods (`rules()`, `validationAttributes()`, `validationMessages()`)
-5. Domain/action/helper methods grouped by concern
-6. Main action such as `save()` when present
+5. Other methods
 7. `render()` when present
-
-`mount()` must be the first method after properties only when the file actually declares a `mount()` method. If the component has no `mount()`, validation rule methods may be the first methods after properties. `render()` must be the last method only when it exists. Do not require either method when the component does not need it.
 
 Section comments are optional. When used, they must use the multi-line format:
 

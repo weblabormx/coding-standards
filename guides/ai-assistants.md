@@ -105,6 +105,17 @@ Commands orchestrate agents. Each agent is a specialist with a narrow, well-defi
 
 ---
 
+## Browser Validation
+
+All local browser validation must use Playwright connected over CDP to a user-opened Chrome session with remote debugging enabled.
+
+- Do not use browser skills, browser plugins, in-app browser automation, Selenium, Puppeteer, or launch-your-own-browser fallbacks for local UI validation.
+- Probe CDP endpoints such as `http://127.0.0.1:9222/json/version`, `:9223`, and `:9224`, plus any user-provided CDP port.
+- If no usable CDP endpoint responds, report the endpoints tried and ask the user for a Chrome remote debugging session or correct CDP port.
+- Do not claim visual validation unless Playwright CDP, or an explicitly approved equivalent runtime browser path, actually opened and checked the flow.
+
+---
+
 ## Available Commands
 
 Commands live in `.opencode/commands/` and are shared across all supported assistants.
