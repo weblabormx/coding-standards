@@ -26,11 +26,14 @@ Raw HTML controls are allowed for hidden inputs, vendor-required markup, small b
 
 ### `x-select` Options Format
 
-If using x-select input, always use `option-key-value`. Never use `option-label`/`option-value` with manually mapped arrays.
+For local `x-select` options, use `option-key-value` with `:options` arrays.
+
+For async selects using `async-data` or `:async-data`, `option-label` and `option-value` are allowed because the API response defines the label/value fields.
 
 ```blade
 {{-- Correct --}}
 <x-select wire:model="currency" :options="$currencyOptions" option-key-value />
+<x-select :async-data="route('api.products.index')" option-label="name" option-value="id" wire:model.live="product" />
 ```
 
 ### Authorization in Livewire Components
@@ -71,27 +74,18 @@ Never add HTML validation attributes (`required`, `min`, `max`, `pattern`, etc.)
 
 ### Modals Must Use wire-elements/modal
 
-All modals must use the `wire-elements/modal` package (`LivewireUI\Modal\ModalComponent`). Never use WireUI's `<x-modal wire:model="...">` embedded inside a parent component.
+Do not use WireUI modal markup in Blade. Report this rule only when the reviewed Blade contains `<x-modal>`.
 
-When reviewing the Blade view that belongs to a `LivewireUI\Modal\ModalComponent`, do not fail because the view contains modal form fields, buttons, `closeModal`, or save/confirm actions. That is the correct dedicated modal body. Fail this rule only for parent views/components that embed WireUI `<x-modal>` or keep modal-specific form logic in the parent instead of opening a dedicated modal component.
-
-**Why:** WireUI modals force all modal logic (form fields, validation, save) into the parent component, mixing concerns. Wire Elements modals are fully independent Livewire components.
-
-**Opening from a parent view — dispatch only, no logic in the parent:**
+Use `wire-elements/modal` (`LivewireUI\Modal\ModalComponent`) for modal screens. Ordinary Livewire markup such as `wire:model`, form inputs, buttons, `closeModal`, `save`, or `confirm` is not evidence for this rule.
 
 ```blade
+{{-- Wrong --}}
+<x-modal wire:model="showModal">
+    ...
+</x-modal>
+
+{{-- Correct --}}
 <button wire:click="$dispatch('openModal', { component: 'posts.create-post' })">
     New Post
 </button>
-
-{{-- With arguments --}}
-<button wire:click="$dispatch('openModal', {
-    component: 'posts.edit-post',
-    arguments: { post: {{ $post->id }} }
-})">
-    Edit
-</button>
 ```
-
-- The parent component must NOT hold properties or methods that belong to a modal
-- `<x-modal>` from WireUI is forbidden

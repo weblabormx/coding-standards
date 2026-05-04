@@ -6,18 +6,19 @@ Apply these rules only to actual Livewire components, normally classes under `ap
 
 ### Mandatory Structure Order
 
-The file has to respect the next structure order:
+Keep Livewire components in this order:
 
 1. `use` statements / traits
 2. Properties
-3. `mount()` **if present, always first**
-4. Rules section — `rules()`, `validationAttributes()`, `validationMessages()`
-5. Domain sections grouped by concern — use as many or as few as the component needs (e.g. Options, Prices, Limits, Features)
-6. Validations section — custom validation helpers (`protected` methods that throw `ValidationException`)
-7. `save()` / main action (no section comment)
-8. `render()` **if present, always last**
+3. `mount()` when present
+4. Validation rule methods (`rules()`, `validationAttributes()`, `validationMessages()`)
+5. Domain/action/helper methods grouped by concern
+6. Main action such as `save()` when present
+7. `render()` when present
 
-Section comments must always use the multi-line format:
+`mount()` must be the first method after properties when it exists. `render()` must be the last method when it exists. Do not require either method when the component does not need it.
+
+Section comments are optional. When used, they must use the multi-line format:
 
 ```php
 /*
@@ -25,38 +26,15 @@ Section comments must always use the multi-line format:
  */
 ```
 
-Never use single-line format: `/* Rules */` is incorrect.
-
-> Section comments are optional organization aids when the component has more than one logical group. Use them when they add clarity. `mount`, `save`, and `render` are never wrapped in a section when they exist — they are structural anchors, not mandatory methods.
-
-Compact components do not need artificial section comments. If the file only has a small set of straightforward action/helper methods, it can still pass without extra section headers. Fail this rule only for objective ordering problems such as `mount()` not being first after properties, `render()` not being last, or rule/validation sections appearing out of order.
-The absence of section comments by itself is **never** enough to fail this rule.
-Do not require a `mount()` method to exist when the component does not need initialization. If `mount()` exists it must be the first method after properties, but missing `mount()` is not a structure violation by itself.
-Do not require an explicit `render()` method when the component intentionally relies on Livewire's conventional view resolution. If `render()` exists it must stay last, but missing `render()` is not a structure violation by itself.
-Administrative utility actions and their private helper methods can count as a single domain group when they support the same operational surface. Do not split one cohesive utility workflow into fake groups just to demand section comments.
-Private or protected helper methods that exist only to support one main action may appear immediately before or immediately after that action. Treat that whole cluster as one action block. Do not fail just because helper methods are adjacent to `save()` / `deploy()` / the main action.
-Do not require an `Actions` section comment. Do not fail just because optional sections are absent.
-Do not treat the first optional domain section comment as a hard boundary that retroactively invalidates earlier domain methods. Domain methods may appear before the first domain header, and the component still passes if the overall structural anchors stay in the correct order.
-After `mount()` and the optional rules section, the remaining operational methods may be grouped flexibly as domain logic, utility actions, validation helpers, and action-adjacent helpers. Do not fail this rule just because one public action appears before or after another domain block when the overall component structure is still coherent and `render()` remains last.
+Report this rule only for objective ordering problems, not for missing optional section comments or compact components with few methods.
 
 ### Authorization in Livewire Components
 
-Every Livewire component that reads or mutates protected resources must enforce authorization. 
+Livewire components that read or mutate protected resources must enforce a server-side authorization boundary.
 
-- `mount()` must call `$this->authorize()` for the component-level intent (`'view'`, `'create'`, `'update'`, or the closest policy ability for the screen) before assigning protected resource properties or exposing protected state.
-- If the component does not have `mount()` and it reads or mutates protected resources, add `mount()` and put the authorization guard there.
-- Do not require repeated `$this->authorize()` or `authorizeAccess()` calls inside every public action method (`delete`, `save`, `select*`, `confirm*`, pagination, filters, tab switches, etc.) when `mount()` already protects the component's resource or screen.
-- Do not add a generic `authorizeAccess()` helper only to call it from every action. Prefer one clear component-level guard in `mount()`.
-- Authorization must never be skipped just because the button is hidden in the view — the component-level `mount()` guard is the authoritative server-side guard for the Livewire screen.
-- If an action crosses into a different protected resource or a different policy ability that is not covered by the component-level `mount()` guard, authorize that exceptional action specifically. Do not treat normal state changes inside the already-authorized screen as requiring their own repeated guard.
-- If there is no meaningful policy subject yet, an equivalent explicit hard guard in `mount()` is acceptable (for example `abort_unless(auth()->user()?->sudo, 403)`). Do not fail when the component clearly enforces a strong server-side guard even if it is not written with `$this->authorize()`.
-- When the guarded subject is the authenticated user or another component-wide contextual object, assigning that contextual object during `mount()` is allowed as part of establishing the guarded state. Do not fail just because `$this->user = auth()->user()` happens immediately before the hard guard.
-- Self-service authenticated-user screens that only read or mutate the current user's own profile, billing, notifications, or account settings may use the authenticated user/session as the authorization boundary. Do not require a separate policy `$this->authorize()` call just because the component assigns `$this->user = auth()->user()` or queries `auth()->user()->...`, as long as it does not access another user's resources.
-- Do not require component-level authorization for reusable child input components whose primary state is a `#[Modelable]` array/value owned by an already-authorized parent form. These components do not own the protected resource screen. If they perform an exceptional direct model operation, an action-level `$this->authorize()` for that specific operation is acceptable.
-- Do not require component-level authorization for reusable input/helper components under namespaces or view paths like `Livewire\Input`, `Livewire\Shared\Inputs`, `Shared\Inputs`, `Admin\Inputs`, `resources/views/livewire/input/*`, `resources/views/livewire/shared/inputs/*`, `resources/views/shared/inputs/*`, or `resources/views/admin/inputs/*` when they only manage field state for a parent component. The parent screen owns authorization.
-- Do not apply this policy-authorization requirement to public authentication/account-access flows such as login, registration, forgot password, reset password, email verification, password confirmation, or 2FA/PIN challenge components. Those flows are guarded by credentials, signed URLs, tokens, throttling, or session state rather than `$this->authorize()` policies.
-- Do not apply this policy-authorization requirement to public website forms that intentionally create or update public intake records, such as contact forms, application forms, newsletter/lead forms, room requests, or other unauthenticated landing-page submissions. Validate/throttle those inputs as appropriate, but do not require `$this->authorize()` policies for public intake.
-- Treat components under public website/marketing namespaces or paths such as `Livewire\Web`, `Web\WborMkt`, landing pages, quizzes, and marketing funnels as public unless the reviewed code clearly accesses authenticated-only resources. Do not require `$this->authorize()` merely because they create or update lead/interaction records.
+Use one component-level guard in `mount()` for the screen/resource whenever possible. Do not repeat the same authorization in every action when `mount()` already protects the component. Add action-level authorization only when that action touches a different resource or ability.
+
+A hard guard such as `abort_unless(...)` is acceptable when there is no useful policy subject. Public authentication flows and public intake/marketing forms do not require policy authorization unless they access authenticated-only resources.
 
 ```php
 // Correct
@@ -66,12 +44,7 @@ public function mount(BillingPlan $billing_plan)
     $this->billingPlan = $billing_plan;
 }
 
-public function deletePlan()
-{
-    $this->billingPlan->delete();
-}
-
-// Incorrect — protected component has no mount-level auth check
+// Incorrect — protected component has no server-side guard
 public function deletePlan()
 {
     $this->billingPlan->delete();
@@ -80,11 +53,9 @@ public function deletePlan()
 
 ### `render()` Must Stay Clean
 
-`render()` must only contain the `return view(...)` call with optional layout configuration. Never build or compute variables inside `render()`.
+In Livewire components, `render()` must only return the view with optional layout configuration. Build data for the view in `#[Computed]` methods instead of local variables inside `render()`.
 
-This rule applies only to actual Livewire components. Do not apply it to Blade view components under `app/View/Components` or classes extending `Illuminate\View\Component`; those components commonly build view names or resolve component views inside `render()`.
-
-Data that the view needs (options for selects, derived collections, config-based lookups) must be declared as `#[Computed]` methods:
+Blade view components under `app/View/Components` or classes extending `Illuminate\View\Component` are outside this Livewire rule.
 
 ```php
 use Livewire\Attributes\Computed;
@@ -102,7 +73,7 @@ public function render()
         ->layout('layouts.app', ['title' => __('Edit Plan')]);
 }
 
-// Incorrect — building variables inside render()
+// Incorrect
 public function render()
 {
     $currencyOptions = BillingPlan::currencyOptions();
@@ -110,54 +81,17 @@ public function render()
 }
 ```
 
-In Blade templates, always reference computed properties via `$this->propertyName`, **not** `$propertyName`. Using `$propertyName` will fail or silently resolve to a regular variable, which does not exist.
+In Blade, reference computed properties as `$this->propertyName`.
 
 ```blade
 {{-- Correct --}}
 :options="$this->currencyOptions"
 
-{{-- Incorrect — $currencyOptions is not a Livewire property --}}
+{{-- Incorrect --}}
 :options="$currencyOptions"
 ```
 
-> If a small number of truly dynamic values must be passed explicitly (e.g., a value that changes per loop iteration), use `compact()`. This should be the rare exception, not the default.
-
-**Never flatten model collections into plain arrays**
-
-When a `#[Computed]` method returns a collection of Eloquent models, pass the models directly to Blade and call model methods there. Do not map the collection into plain arrays to pre-extract fields.
-
-```php
-// Correct — pass models, call methods in Blade
-#[Computed]
-public function plans()
-{
-    return BillingPlan::getPricesByInterval($this->interval, $this->countryCode);
-}
-```
-
-```blade
-{{-- Correct --}}
-@foreach ($this->plans as $plan)
-    {{ $plan->billingPrice->priceable->name }}
-    {{ $plan->isCurrentPlan($currentSubscription) }}
-@endforeach
-```
-
-```php
-// Incorrect — maps models into anonymous arrays, hides domain methods from Blade
-#[Computed]
-public function plans()
-{
-    return BillingPlan::getPricesByInterval($this->interval, $this->countryCode)
-        ->map(fn ($plan) => [
-            'name'       => $plan->billingPrice->priceable->name,
-            'is_current' => $plan->isCurrentPlan($subscription),
-        ])
-        ->all();
-}
-```
-
-Flattening into arrays breaks model method access, defeats the Rich Domain Models pattern, and forces the computed method to know about state that the model already encapsulates.
+When a computed method returns Eloquent models, pass the models to Blade instead of mapping them into plain arrays.
 
 ### Avoid `#[Computed]` for Single-Use Internal Checks
 
@@ -204,28 +138,19 @@ public string $description = '';
 
 ### Direct Model Binding
 
-- Always bind form fields directly to the model instance using `wire:model`, for example: `wire:model="user.name"`.
-- When creating or editing a record, declare a public model property (for example, `public User $user`) and work exclusively with that instance throughout the component.
-- Avoid creating separate public properties for each field or manually assembling data arrays before saving.
-- Persist changes directly through the model instance with $this->user->save().
-- This rule is for CRUD-style create/edit forms backed by an Eloquent model. Do not apply it to admin utility components, settings screens, DTO/state objects, wizard state containers, or other non-CRUD workflows that are not editing one Eloquent record through a standard form surface.
-- Do not apply this rule to reusable input subcomponents that expose `#[Modelable]` array/value state for a parent form. Array editing in those child inputs is expected because the parent owns the Eloquent model and persistence boundary.
-- Do not apply this rule to reusable input/helper components under namespaces or paths like `Livewire\Input`, `Livewire\Shared\Inputs`, `Shared\Inputs`, or `Admin\Inputs`. These components may expose field arrays, selected IDs, labels, or helper state instead of owning one Eloquent record.
-- Do not apply this rule to authentication or credential forms such as login, registration, forgot password, reset password, password confirmation, verification, 2FA, or PIN flows. Those forms intentionally use credential fields (`email`, `password`, `token`, `code`) rather than binding to an Eloquent model instance.
-- Do not apply this rule to public website intake forms such as contact, application, lead, newsletter, or landing-page request forms. Those forms commonly collect DTO-style field arrays and create records on submit instead of editing one existing Eloquent model instance.
-- The `mount(?User $user = null)` example below is illustrative only. Do not require that exact signature, and do not require creating a brand-new model instance when the component legitimately works with the authenticated user, a route-bound model, or another existing contextual model instance.
-- If the Blade file is not part of the reviewed source, do not fail this rule only because `wire:model="model.field"` bindings are not visible from the PHP class. Fail only when the reviewed code itself clearly shows the anti-pattern: separate field properties for one record, manual assembly arrays for persistence, or avoiding the model instance entirely.
-- Transient UI or workflow attributes temporarily attached to the model instance inside the component are acceptable when the component still uses one model instance as the primary record surface.
-- Do not fail unrelated public UI state such as selected IDs, modal flags, expanded row IDs, filters, tabs, pagination state, or workflow toggles. These are not form field properties and may coexist with a public model property used for the record being created or edited.
-- Do not fail manual assignment of contextual foreign keys or ownership fields immediately before saving a public model instance (for example `project_id`, `user_id`, `assignee_id`) when the user-editable form data is still bound to that model instance.
+This rule applies only when a component directly persists an Eloquent model with `save()`, `create()`, `update()`, `fill()`, or an equivalent direct model persistence call.
+
+Report this rule only when all of these are true:
+
+1. The component directly saves a model.
+2. Several public properties mirror attributes of that same model.
+3. Those properties are manually passed into the model persistence call.
+4. The component is not already using a public model property as the main form surface.
+
+If the code is not directly persisting a model, this rule does not apply.
 
 ```php
 public User $user;
-
-public function mount(?User $user = null): void
-{
-    $this->user = $user ?? new User();
-}
 
 <input type="text" wire:model="user.name">
 
@@ -235,104 +160,57 @@ public function save(): void
 }
 ```
 
-### WireUI Notifications
+### WireUI Feedback
 
-Use `$this->notification()` from the `WireUiActions` trait for all user-facing feedback in Livewire components. Never use custom alert divs, flash sessions, or ad-hoc boolean properties to show messages.
+Use WireUI feedback APIs from `WireUiActions` for user-facing Livewire feedback. Both `$this->notification()` and `$this->dialog()` / `$this->dialog()->show([...])` are allowed.
 
-Do not require every reusable input/helper child component to emit a notification after local state changes. If the component is an input under `Livewire\Input`, `Livewire\Shared\Inputs`, `Shared\Inputs`, or `Admin\Inputs`, the parent form may own user-facing feedback.
+Use notifications for passive feedback. Use dialogs for confirmations, blockers, destructive actions, or messages the user must acknowledge. Do not replace either with custom alert flags, flash messages, or ad-hoc view state.
 
 ```php
-use WireUi\Traits\WireUiActions;
+$this->notification()->success(
+    title: __('Saved'),
+    description: __('The record has been saved successfully.')
+);
 
-class MyComponent extends Component
-{
-    use WireUiActions;
-
-    public function save()
-    {
-        // ...
-        $this->notification()->success(
-            title: __('Saved'),
-            description: __('The record has been saved successfully.')
-        );
-    }
-}
+$this->dialog()->show([
+    'icon' => 'warning',
+    'title' => __('No items'),
+    'description' => __('Add at least one item before continuing.'),
+]);
 ```
-
-- Always use named arguments (`title:`, `description:`)
-- Both `title` and `description` must be wrapped in `__()`
-- Available methods: `->success()`, `->error()`, `->warning()`, `->info()`
-- Never add `public $someSuccessMessage` properties to pass messages to the view
 
 ### Modals Must Use wire-elements/modal
 
-All modals must use the `wire-elements/modal` package (`LivewireUI\Modal\ModalComponent`). Never use WireUI's `<x-modal wire:model="...">` embedded inside a parent component.
+Use `wire-elements/modal` (`LivewireUI\Modal\ModalComponent`) for modal screens. Do not use WireUI `<x-modal>` markup.
 
-**Why:** WireUI modals force all modal logic (form fields, validation, save) into the parent component, mixing concerns. Wire Elements modals are fully independent Livewire components.
+Report this rule in Blade only when `<x-modal>` appears. Report it in PHP only when a component clearly implements a WireUI-style embedded modal instead of using a dedicated `ModalComponent`.
 
-**Modal component — extends `ModalComponent`, owns all its logic:**
+Do not report this rule for normal Livewire form state, `wire:model`, public properties, buttons, `closeModal()`, `save()`, or `confirm()` by themselves.
 
 ```php
 use LivewireUI\Modal\ModalComponent;
 
 class CreatePost extends ModalComponent
 {
-    public $title, $content;
-
     public function save(): void
     {
         $this->validate();
-        Post::create([...]);
         $this->closeModal();
-    }
-
-    public function render()
-    {
-        return view('livewire.posts.create-post');
     }
 }
 ```
 
-**Opening from a parent view — dispatch only, no logic in the parent:**
-
-```blade
-<button wire:click="$dispatch('openModal', { component: 'posts.create-post' })">
-    New Post
-</button>
-
-{{-- With arguments --}}
-<button wire:click="$dispatch('openModal', {
-    component: 'posts.edit-post',
-    arguments: { post: {{ $post->id }} }
-})">
-    Edit
-</button>
-```
-
-**Closing from inside the modal:**
-
-```php
-$this->closeModal();
-$this->closeModalWithEvents([ParentList::class => 'postSaved']); // close + notify parent
-```
-
-- The parent component must NOT hold properties or methods that belong to a modal
-- `<x-modal>` from WireUI is forbidden
-
----
-
 ### Validation Rules
 
-- Non-nullable DB fields → `required`
-- Numeric values → reasonable `max`/`min`
-- Strings → length validation
-- Validate consistency between database schema and validation rules
-- Apply the DB-specific parts of this rule only when the validated field clearly maps to a persisted database column or stored payload. Do not assume every validated property is a DB column.
-- Do not fail transient UI fields, operational form state, contextual metadata, or model-attached runtime attributes just because they lack `required` or string length limits. Require those only when the domain or storage contract clearly needs them.
-- If the schema or persisted contract is not visible in the reviewed source, do not invent non-nullability. Fail only when the code or known schema gives concrete evidence that the field is persisted and constrained differently.
-- In Laravel or Livewire validation, do not use `messages()` just to restate Laravel's default validation text with a translated field name
-- Prefer `validationAttributes()` or `attributes()` to provide the user-facing field label when the default validation message structure is still correct
-- Use `messages()` only when the validation copy is genuinely custom and changes the meaning or wording beyond Laravel's standard message
+Keep validation aligned with the persisted contract when the field clearly maps to stored data:
+
+- Non-nullable stored fields need `required`.
+- Numeric stored fields need reasonable `min` / `max` bounds.
+- Stored strings need length validation.
+
+Do not invent database constraints from a snippet. If the reviewed code does not show that a field is persisted, treat it as component state.
+
+For user-facing validation names, prefer `validationAttributes()` / `attributes()`. Use `messages()` only when the message wording is genuinely custom, not just Laravel's default message with a translated field name.
 
 ```php
 // Correct
@@ -340,8 +218,6 @@ protected function validationAttributes()
 {
     return [
         'task.name' => __('name'),
-        'task.description' => __('description'),
-        'task.status' => __('status'),
     ];
 }
 
@@ -350,17 +226,17 @@ protected function messages()
 {
     return [
         'task.name.required' => __('The name field is required.'),
-        'task.name.string' => __('The name field must be a string.'),
-        'task.name.max' => __('The name must not exceed :max characters.'),
     ];
 }
 ```
 
 ### Custom Rule Classes
 
-When validation logic applies to more than one component or form, extract it to a dedicated Rule class using `php artisan make:rule RuleName`. Never duplicate the same validation logic inline across multiple components.
+Create a dedicated Rule class when custom validation logic is reused across components or forms. Do not duplicate reusable custom validation inline.
 
-**Naming:** name validators after the domain concept they validate, not the specific rule (e.g. `LimitValidator`, `PricingValidator`). This way, when new checks are needed for the same concept, they go in the same file instead of creating a new class per rule.
+This rule does not apply to ordinary `$this->validate([...])`, `rules()`, `validateOnly()`, standard Laravel rule strings, or small conditional validation blocks.
+
+Report this rule when repeated custom validation logic appears inline, such as duplicated closure rules, repeated `Validator::after(...)`, repeated manual `$fail(...)`, or repeated field-level `ValidationException::withMessages(...)` blocks.
 
 ```php
 // app/Rules/LimitValidator.php
@@ -368,19 +244,12 @@ class LimitValidator implements ValidationRule
 {
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        $keys = collect($value)->pluck('limit_key')->whereNotNull();
-        if ($keys->count() !== $keys->unique()->count()) {
+        if (collect($value)->pluck('limit_key')->duplicates()->isNotEmpty()) {
             $fail(__('Each limit key can only be used once.'));
-            return;
         }
-        // add more limit checks here as needed
     }
 }
 
-// In rules() of any component that needs it
+// In rules()
 'limits' => ['array', new LimitValidator],
 ```
-
-- Rule classes live in `app/Rules/`
-- Apply the rule in the `rules()` array — never call validation helpers from `save()` for logic that can be expressed as a Rule
-- When a rule has multiple checks, call `$fail` and `return` on the first failing check so errors don't stack confusingly

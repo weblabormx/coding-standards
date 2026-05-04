@@ -4,20 +4,18 @@
 
 ### Colors
 
-**Use project color tokens instead of raw Tailwind palette colors.**
+**Use project color tokens only when the intent is clear.**
 
-Prefer project-defined color tokens such as `primary-*`, `secondary-*`, `default-*`, `positive-*`, `negative-*`, `warning-*`, and `info-*` instead of raw Tailwind palette classes like `red-*`, `blue-*`, `gray-*`, `slate-*`, `amber-*`, `emerald-*`, or `teal-*`.
+Report a color only when all of these are true:
 
-For brand, layout, surfaces, borders, text, and general UI, use the project token that represents the intent instead of the underlying palette color. For semantic states, use semantic tokens such as `positive-*` for success/active/confirmed states, `negative-*` for error/destructive/failed states, `warning-*` for caution/pending states, and `info-*` for informational/help/notice states. For neutral UI, prefer `default-*` or `secondary-*` according to the component's existing pattern.
+1. The class uses a raw palette/arbitrary color.
+2. The UI intent is obvious from nearby code.
+3. A project token is the clear replacement.
 
-Do not hardcode assumptions about which Tailwind palette backs a token. For example, do not assume `negative-*` is always red or `primary-*` is always teal; use the token name that matches the UI intent.
-
-Raw Tailwind palette colors are allowed only when the project has no appropriate token, the value is vendor-required, or the color belongs to a one-off external integration that cannot safely use project tokens. In those cases, the reason must be clear from nearby context.
-
-When reporting a raw palette color violation, include the concrete replacement suggestion instead of only saying the color is not allowed. Preserve the shade when possible and suggest the token that matches the UI intent, for example `text-negative-700` for error text, `bg-warning-50` for warning backgrounds, `text-info-600` for informational links, or `text-default-600` / `text-secondary-600` for neutral gray text. If neutral intent is ambiguous, suggest both likely options and ask the implementer to follow the component's existing `default-*` or `secondary-*` pattern.
+Use semantic tokens for semantic intent: `positive-*`, `negative-*`, `warning-*`, and `info-*`. Use brand/product tokens such as `primary-*` when the element is clearly brand or primary UI. Do not invent a token replacement for neutral styling or an arbitrary hex value when the intent is not obvious.
 
 ```blade
-{{-- Wrong --}}
+{{-- Wrong: error intent is obvious --}}
 <div class="border border-red-100 bg-red-50 text-red-700">Error</div>
 
 {{-- Correct --}}
@@ -40,11 +38,9 @@ Dark mode is not in use. Remove any `dark:` prefixed classes found in existing c
 
 ### Hover States
 
-**All buttons and links must have a `hover:` state.**
+Raw interactive elements must have a `hover:` state. This applies to `<button>`, `<a>`, and non-semantic elements made interactive with `wire:click`, `@click`, `x-on:click`, or equivalent.
 
-This applies to `<button>`, `<a>`, and any element with a Livewire action (`wire:click`) or Alpine action (`@click`) that the user can interact with.
-
-Do not fail design-system Blade components such as `<x-button>`, `<x-link>`, or other interactive `x-*` components solely because the Blade invocation does not include a `hover:` utility. These components own their rendered hover styles internally. Apply this rule to raw HTML elements or custom wrappers where the reviewed class list controls the actual interactive styling.
+Design-system interactive components such as `<x-button>` and `<x-link>` own their hover styles internally, so the Blade invocation does not need a `hover:` utility.
 
 ```blade
 {{-- Wrong --}}
@@ -52,32 +48,34 @@ Do not fail design-system Blade components such as `<x-button>`, `<x-link>`, or 
 
 {{-- Correct --}}
 <button class="bg-primary hover:bg-primary-dark text-white px-4 py-2">Guardar</button>
+<x-button primary :label="__('Save')" />
 ```
 
 ### Cursor
 
-**Interactive elements must have `cursor-pointer`. Non-interactive elements must not.**
+**Only non-semantic clickable elements need `cursor-pointer`.**
 
-Treat any element with an active `wire:click`, `x-on:click`, or `@click` handler as interactive, including table cells and headers. Do not fail `cursor-pointer` on those elements. Do not fail neutral cursor classes such as `cursor-default` or `cursor-text` on non-interactive elements; only flag misleading interactive cursors like `cursor-pointer` on elements with no interaction.
+Buttons, links, labels, native controls, and design-system interactive components do not need an explicit `cursor-pointer`. Add `cursor-pointer` when a non-semantic element such as `div`, `span`, `td`, or `th` is made clickable with `wire:click`, `@click`, `x-on:click`, or equivalent.
+
+Do not put `cursor-pointer` on elements that are not interactive.
 
 ```blade
-{{-- Wrong: button without cursor --}}
-<button class="bg-primary text-white">Guardar</button>
-
-{{-- Wrong: div pretending to be interactive --}}
-<div class="text-gray-500">Texto informativo</div>
+{{-- Wrong --}}
+<div wire:click="save" class="bg-primary text-white">Guardar</div>
+<div class="text-gray-500 cursor-pointer">Texto informativo</div>
 
 {{-- Correct --}}
-<button class="bg-primary text-white cursor-pointer">Guardar</button>
+<button wire:click="save" class="bg-primary text-white">Guardar</button>
+<div wire:click="save" class="bg-primary text-white cursor-pointer">Guardar</div>
 ```
 
 ### Nesting
 
-**Do not nest divs unnecessarily.**
+Remove wrapper `div`s that have no layout, styling, behavior, or grouping purpose.
 
-A `div` with no styling purpose and a single child should be removed. Every wrapper must have a clear layout or spacing reason.
+A wrapper is valid when it provides spacing, padding, border, overflow, positioning, flex/grid layout, Alpine/Livewire behavior, conditional rendering, semantic grouping, or wraps multiple meaningful children.
 
-Do not fail wrappers that provide spacing, padding, borders, overflow, positioning, Alpine/Livewire behavior, conditional boundaries, or semantic grouping for multiple children. A wrapper with classes such as `space-*`, `p-*`, `border`, `overflow-*`, `relative`, `absolute`, `flex`, `grid`, `x-show`, `wire:*`, or multiple meaningful children has a layout or behavior purpose.
+Pass spacing/layout classes directly to a component when the wrapper exists only to style that component.
 
 ```blade
 {{-- Wrong --}}
@@ -89,11 +87,7 @@ Do not fail wrappers that provide spacing, padding, borders, overflow, positioni
 
 {{-- Correct --}}
 <span>Contenido</span>
-```
 
-**Do not wrap components in a `div` just to apply spacing or layout classes.** Pass those classes directly to the component.
-
-```blade
 {{-- Wrong --}}
 <div class="mb-10">
     <x-card>...</x-card>
@@ -157,13 +151,16 @@ When an inline style is necessary, keep it as narrow as possible and do not mix 
 
 ### Responsive Design
 
-**All views must work on mobile.** Use responsive prefixes (`sm:`, `md:`, `lg:`) when an element needs different behavior across breakpoints instead of hiding or ignoring mobile layouts.
+**Main layout containers must not overflow mobile screens.**
 
-- Do not use fixed widths for main layout containers, cards, forms, tables, modals, or content columns when the element must adapt to small screens.
-- Fixed widths and `min-w-*` utilities are allowed for small bounded UI elements such as icons, avatars, badges, handles, narrow table columns, action columns, dropdown minimums, progress controls, and intentionally constrained controls when they do not cause horizontal overflow or block mobile usability.
-- Do not flag arbitrary spacing or sizing utilities solely because they are arbitrary. Utilities like `min-w-[50px]`, `w-[72px]`, or `h-[18px]` are allowed when they size a small bounded UI element, table column, icon area, control, badge, handle, or other intentionally constrained piece of UI and do not break mobile usability.
-- Arbitrary fixed widths such as `w-[320px]`, `min-w-[20rem]`, or inline `min-width` must have a clear bounded-component reason. If the width controls page or section layout, prefer responsive combinations such as `w-full`, `max-w-*`, `min-w-0`, `flex-1`, grid columns, or breakpoint-prefixed widths.
-- Do not flag `min-w-0`, `min-w-full`, or breakpoint-scoped minimum widths like `sm:min-w-64` solely because they contain `min-w`; evaluate whether they preserve or break responsive behavior.
-- Responsive prefixes are required only when the element needs different behavior across breakpoints. Do not require `sm:`, `md:`, or `lg:` on every fixed or arbitrary size.
-- Verify that text, buttons, and forms are usable at small screen sizes.
-- Prefer `flex-col` on mobile and `flex-row` on larger breakpoints when stacking is needed.
+Report a responsive width issue only when a fixed width controls a main container, card, form, table, modal, or content column and can overflow on small screens. Suggest the concrete responsive replacement, usually `w-full max-w-*`.
+
+Fixed or arbitrary sizes are fine for small bounded UI pieces such as icons, avatars, badges, handles, controls, and narrow table/action columns.
+
+```blade
+{{-- Wrong --}}
+<div class="w-[400px] rounded bg-white">
+
+{{-- Correct --}}
+<div class="w-full max-w-[400px] rounded bg-white">
+```
