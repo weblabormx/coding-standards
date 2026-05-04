@@ -38,9 +38,9 @@ For async selects using `async-data` or `:async-data`, `option-label` and `optio
 
 ### Authorization in Livewire Components
 
-Every blade that reads or mutates protected resources must enforce authorization. 
+Every Blade view that reads or mutates protected resources must enforce authorization when protected actions or protected data are present.
 
-- Action buttons (delete, migrate, edit) must be wrapped in `@can` / `@cannot` directives
+- Protected mutating action buttons that exist in the view (delete, migrate, edit) must be wrapped in `@can` / `@cannot` directives
 - Never duplicate policy logic inside the view. If the policy already checks a condition (e.g. `hasSubscribers`), do not re-check it in Blade — trust the policy
 - The `@can` wrapper controls visibility only; the Livewire component must still have its authoritative server-side guard at the component level, normally in `mount()` as defined in `coding_standards/livewire.md`
 - Do not require `@can` for non-mutating UI controls such as `closeModal`, `cancel`, tab switches, filters, pagination, or other purely local UI state actions.
@@ -62,7 +62,7 @@ Every blade that reads or mutates protected resources must enforce authorization
 
 ### No HTML Validation Attributes
 
-Never add HTML validation attributes (`required`, `min`, `max`, `pattern`, etc.) to inputs inside Livewire views. All validation belongs in the component's `rules()` method. HTML attributes are bypassable client-side and duplicate logic that Livewire already enforces on the server.
+Never add HTML validation attributes (`required`, `min`, `max`, `pattern`, etc.) to inputs inside Livewire views. When validation exists, it belongs in the Livewire component validation layer (`rules()`, `$this->validate()`, form objects, or equivalent), not in HTML attributes. HTML attributes are bypassable client-side and duplicate server-side validation.
 
 ```blade
 {{-- Correct --}}

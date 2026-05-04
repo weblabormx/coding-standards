@@ -4,13 +4,13 @@
 
 ### Purpose
 
-Services exist to communicate with **external systems** (Stripe, APIs, third-party integrations). They must not contain domain logic that belongs in a model, and must not manage model state directly.
+Services exist to communicate with **external systems** (Stripe, APIs, third-party integrations). When a service exists, it must not contain domain logic that belongs in a model or manage model state directly.
 
 Payment services may call framework SDK methods that perform external billing workflows, such as Laravel Cashier subscription builders, subscription lifecycle methods (`newSubscription()`, `checkout()`, `cancelNow()`, `addPriceAndInvoice()`, `removePrice()`, `swap()`), and payment-method methods (`addPaymentMethod()`, `updateDefaultPaymentMethod()`, `deletePaymentMethod()`). Treat those as external Stripe operations, not ordinary domain model writes, as long as the service is not manually assigning unrelated Eloquent attributes or calling generic persistence methods for app-owned state.
 
 ### Services are read-only with respect to models
 
-A service must never call `save()`, `update()`, `updateQuietly()`, or assign attributes on any model it receives. Services only read models and communicate results via return values. The observer or caller that invoked the service is responsible for persisting any returned data.
+When a service receives a model, it must not call `save()`, `update()`, `updateQuietly()`, or assign attributes on that model. Services read models and communicate results via return values; the observer or caller persists returned data when persistence is needed.
 
 Do not fail Cashier or SDK lifecycle/payment-method calls solely because the SDK also syncs local billing records. Fail generic Eloquent writes (`save`, `update`, attribute assignment) to app-owned domain state; allow external-system SDK operations inside services whose purpose is that integration.
 
@@ -51,7 +51,7 @@ public function cancelSubscriptionsByPrice(BillingPrice $price)
 
 ### Call pattern
 
-Services are always called via model methods or observers — never directly from Livewire components or controllers.
+When Livewire components or controllers need external-system service behavior, they call a model method or observer-owned flow instead of calling the service directly.
 
 Pattern: `Livewire / Controller → Model Method → Observer → Service`
 

@@ -59,7 +59,7 @@ class TaskTracker extends Livewire\Component
   - Multi-state coordination involving multiple properties.
   - Complex event-driven workflows.
 - Recommend moving flagged logic into Livewire components.
-- Require documentation comments citing performance exceptions if Alpine.js is used for complex logic.
+- Require documentation comments only when Alpine.js is intentionally used for complex logic as a performance exception.
 
 ---
 

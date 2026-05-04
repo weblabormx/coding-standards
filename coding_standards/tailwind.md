@@ -99,13 +99,13 @@ Pass spacing/layout classes directly to a component when the wrapper exists only
 
 ### x-dropdown
 
-If using x-dropdown component.
+When an `x-dropdown` component is present:
 
-**Use `position` instead of `align`.** The `align` attribute no longer exists. Use:
+**Use `position` instead of `align`.** The `align` attribute no longer exists on `x-dropdown`. Use:
 - `position="bottom"` — opens downward, centered (replaces `align="center"`)
 - `position="top"` — opens upward, centered
 
-**Always set `width="xl"` unless there is a specific reason to use a different size.**
+Set `width="xl"` on `x-dropdown` unless there is a specific reason to use a different size.
 
 ```blade
 {{-- Wrong --}}
@@ -117,9 +117,9 @@ If using x-dropdown component.
 
 ### x-modal
 
-If using x-modal component
+When an `x-modal` component is present:
 
-**Always add `w-full` to the `x-card` inside an `x-modal`.**
+Add `w-full` to the `x-card` inside an existing `x-modal`.
 
 WireUI's modal wrapper uses a flex container. Without `w-full`, the card shrinks to its content width instead of filling the modal.
 

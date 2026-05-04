@@ -4,7 +4,7 @@
 
 ### Models
 
-- Always use `$guarded`, never `$fillable`.
+- Eloquent models use `$guarded`, never `$fillable`.
 - Keep model sections in this relative order when those sections exist: **Static Functions → Functions → Scopes → Relationships → Attributes**.
 - Accessors and mutators belong in `Attributes`, including legacy `getFooAttribute()` / `setFooAttribute()` methods.
 - Relationship names must describe exactly what they return. Add qualifiers only when there are multiple relationships of the same type.
@@ -13,7 +13,7 @@
 
 ### Rich Domain Models
 
-Model-owned domain actions must be exposed through model methods. Livewire components and controllers call the model method, not the service/job directly.
+When a domain action belongs to a model, expose it through a model method. Livewire components and controllers call the model method, not the service/job directly.
 
 Pattern: `Livewire / Controller → Model Method → Service / Job`
 
@@ -86,7 +86,7 @@ $subAddon->status === AddOnStatus::Active;
 
 ### Relationship-Based Model Creation
 
-Always use Eloquent relationships to create related models.
+When creating a related model, use the owning Eloquent relationship.
 
 ```php
 // Correct
