@@ -16,7 +16,7 @@ Keep Livewire components in this order:
 6. Main action such as `save()` when present
 7. `render()` when present
 
-`mount()` must be the first method after properties when it exists. `render()` must be the last method when it exists. Do not require either method when the component does not need it.
+`mount()` must be the first method after properties only when the file actually declares a `mount()` method. If the component has no `mount()`, validation rule methods may be the first methods after properties. `render()` must be the last method only when it exists. Do not require either method when the component does not need it.
 
 Section comments are optional. When used, they must use the multi-line format:
 
