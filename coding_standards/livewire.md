@@ -162,9 +162,11 @@ public function save(): void
 
 ### WireUI Feedback
 
-Use WireUI feedback APIs from `WireUiActions` for user-facing Livewire feedback. Both `$this->notification()` and `$this->dialog()` / `$this->dialog()->show([...])` are allowed.
+Use WireUI feedback APIs from `WireUiActions` only for messages shown directly to the user. Both `$this->notification()` and `$this->dialog()` / `$this->dialog()->show([...])` are allowed.
 
-Use notifications for passive feedback. Use dialogs for confirmations, blockers, destructive actions, or messages the user must acknowledge. Do not replace either with custom alert flags, flash messages, or ad-hoc view state.
+This rule applies when the code creates user-facing feedback text or UI state for an alert/message. It does not apply to Livewire events such as `$this->dispatch(...)`, browser events, parent refresh events, modal close events, or other internal communication.
+
+Use notifications for passive feedback. Use dialogs for confirmations, blockers, destructive actions, or messages the user must acknowledge. Do not replace either with custom alert flags, flash messages, or ad-hoc view state when the code is actually showing a user-facing message.
 
 ```php
 $this->notification()->success(
