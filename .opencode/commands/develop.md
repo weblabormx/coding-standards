@@ -59,6 +59,7 @@ The developer must:
 - Reuse an existing unpushed migration for the same schema/task when safe instead of creating unnecessary follow-up migrations.
 - Return the list of files it created or modified.
 - Apply any later Code Analysis findings sent back by this command.
+- Do not run Pint, PHP-CS-Fixer, Prettier, `npm run format`, project-wide formatting scripts, or equivalent formatter commands unless the user explicitly asks for formatting.
 
 Do not write documentation as part of this command unless the confirmed scope explicitly requires changing documentation files.
 
@@ -182,6 +183,7 @@ Stop here. Do not run extra documentation work as part of this command unless ex
 - Always run impact analysis and validation that matches the change type before committing, including migrations, frontend proof/build, and browser validation for user-facing flows when available
 - If validation finds an error caused by the implementation, fix it and rerun the affected validation before reporting success
 - Keep changes minimal — only what was defined in requirements
+- Do not run formatter commands during implementation or validation unless the user explicitly asks for formatting; report formatter-owned issues instead
 - Do not write documentation in this flow unless explicitly requested or included in the confirmed scope
 - If `../ia-analyzer` exists, run external Code Analysis for modified code or implementation files in this command
 - If `../ia-analyzer` does not exist, use focused validation that matches the confirmed scope

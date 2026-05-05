@@ -13,6 +13,8 @@ When adding or clarifying standards, keep edits surgical: change only the rule, 
 
 Mechanical PHP formatting is formatter-owned. Weblabor projects currently use Laravel Pint through the Weblabor Coding Standards package as the source of truth for Pint/PHP-CS-Fixer-compatible style. Standards, reviews, and fixes must not fight formatter output unless the user explicitly asks to change the formatter configuration.
 
+Do not run formatter commands as part of assistant implementation, review, cleanup, validation, or standards-update workflows unless the user explicitly asks for formatting. This includes `pint`, `./vendor/bin/pint`, Laravel Pint, PHP-CS-Fixer, Prettier, `npm run format`, project-wide formatting scripts, and equivalent auto-formatters. Formatting is handled separately by the project maintainers; assistants should make surgical edits, classify formatter-owned issues as such, and report when a formatter should be run instead of running it themselves.
+
 ---
 
 ## Mandatory Confirmation Before Action

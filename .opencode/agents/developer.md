@@ -53,6 +53,7 @@ If this agent is invoked directly with implementation authority and no parent co
 - Do not reformat or style-clean unrelated code or standards files while implementing a requested fix
 - When editing standards documentation, change only the requested rule text, examples, or necessary nearby context
 - Treat mechanical PHP style as formatter-owned; in Weblabor projects, Laravel Pint through Weblabor Coding Standards is the current source of truth for Pint/PHP-CS-Fixer-compatible formatting
+- Do not run Pint, PHP-CS-Fixer, Prettier, `npm run format`, or equivalent formatter commands unless the user explicitly asks for formatting; make targeted edits only and leave formatter execution to project maintainers
 - Do not ask for confirmation for clear, low-risk, local changes
 - Do not run extra validation steps or write documentation
 - Do not present work to the user directly; return changed files to the command for validation

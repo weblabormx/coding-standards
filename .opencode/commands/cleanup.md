@@ -269,7 +269,7 @@ Within each cleanup group:
 - Avoid broad rewrites when a smaller cleanup achieves the same result
 - Do not make whitespace-only, trailing-whitespace-only, final-newline-only, blank-line-only, indentation-only, wrapping-only, import-order-only, or other cosmetic formatting changes unless a concrete cleanup rule explicitly requires that exact change
 - Before validating or committing a cleanup unit, inspect the diff and revert any hunk whose only effect is spacing, trailing whitespace, final newline, blank lines, wrapping, import ordering, or cosmetic formatting not required by a concrete rule
-- Do not run broad auto-formatters or project-wide formatting commands during `/cleanup`; use targeted edits only
+- Do not run Pint, PHP-CS-Fixer, Prettier, `npm run format`, broad auto-formatters, project-wide formatting commands, or equivalent formatter scripts during `/cleanup` unless the user explicitly asks for formatting. Use targeted edits only and leave formatter execution to project maintainers.
 - Mark unchanged inspected files as `reviewed-no-change` with the specific standard or convention that was checked
 - If a file is skipped, say why
 - If a file is deferred because it would change behavior or needs a larger design change, count it as `blocked` or `recommendation`, not as silently skipped or completed

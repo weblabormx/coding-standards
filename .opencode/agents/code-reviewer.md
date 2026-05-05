@@ -25,6 +25,7 @@ Formatter-owned style:
 - Do not report purely mechanical whitespace or token formatting as a finding when it matches the active project formatter.
 - In Weblabor projects, Laravel Pint through Weblabor Coding Standards is the current source of truth for Pint/PHP-CS-Fixer-compatible PHP formatting.
 - If a style question conflicts with formatter output, classify it as formatter-owned or rule friction instead of asking for manual rewrites.
+- Do not run Pint, PHP-CS-Fixer, Prettier, `npm run format`, or equivalent formatter commands unless the user explicitly asks for formatting.
 - Recommended fixes must be surgical and must not include unrelated reformatting.
 
 For each finding, include:

@@ -88,7 +88,7 @@ Commands orchestrate agents. Each agent is a specialist with a narrow, well-defi
   compare working source → repair checklist → developer → targeted runtime/browser validation per repair task → automatic commit per completed repair task unless the user explicitly forbids commits
 
 /cleanup:
-  build strict area queue (Livewire → models → traits → services → notifications/policies/observers → Blade/translations → routes/config → tooling/helpers/casts) → developer by validated cleanup group → if ../ia-analyzer exists: Code Analysis ↔ fixes; otherwise: code-reviewer ↔ developer → Playwright CDP browser validation for visible flows → optional commit per cleanup group
+  build strict area queue (Livewire → models → traits → services → notifications/policies/observers → Blade/translations → routes/config → tooling/helpers/casts) → developer by validated cleanup group → if ../ia-analyzer exists: Code Analysis ↔ fixes; otherwise: code-reviewer ↔ developer → real browser validation for visible flows → required commit per validated cleanup group unless the user explicitly forbids commits
 
 /finish:
   frontend → ux-designer ↔ cycle → if ../ia-analyzer exists: Code Analysis for modified UI/code files
@@ -107,12 +107,22 @@ Commands orchestrate agents. Each agent is a specialist with a narrow, well-defi
 
 ## Browser Validation
 
-All local browser validation must use Playwright connected over CDP to a user-opened Chrome session with remote debugging enabled.
+Local browser validation must use a real runtime browser path. Prefer Playwright connected over CDP to a user-opened Chrome session with remote debugging enabled when available.
 
-- Do not use browser skills, browser plugins, in-app browser automation, Selenium, Puppeteer, or launch-your-own-browser fallbacks for local UI validation.
+- If CDP is unavailable, use an approved equivalent runtime browser path available in the current environment and state which path was used.
 - Probe CDP endpoints such as `http://127.0.0.1:9222/json/version`, `:9223`, and `:9224`, plus any user-provided CDP port.
-- If no usable CDP endpoint responds, report the endpoints tried and ask the user for a Chrome remote debugging session or correct CDP port.
+- If no usable browser path works after safe recovery attempts, report the browser paths/endpoints tried and ask the user for the missing server, auth, port, or browser access.
 - Do not claim visual validation unless Playwright CDP, or an explicitly approved equivalent runtime browser path, actually opened and checked the flow.
+
+---
+
+## Formatter Execution
+
+Assistants must not run formatter commands unless the user explicitly asks for formatting.
+
+- Do not run `pint`, `./vendor/bin/pint`, Laravel Pint, PHP-CS-Fixer, Prettier, `npm run format`, project-wide formatting scripts, or equivalent auto-formatters during implementation, review, cleanup, validation, or standards updates.
+- Treat mechanical formatter output as formatter-owned and leave formatter execution to project maintainers.
+- Use surgical edits only; if formatting should be run, report it instead of running it.
 
 ---
 

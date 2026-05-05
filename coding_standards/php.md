@@ -30,6 +30,7 @@ Return types are allowed when they are required by a parent class, interface, ab
 
 - Follow the project's configured formatter for purely mechanical whitespace and token style.
 - Do not report formatter-owned style as a manual cleanup finding unless it contradicts the formatter output or the formatter is unavailable.
+- Do not run Pint, PHP-CS-Fixer, or any formatter command to fix or validate these standards unless the user explicitly asks for formatting. Formatter execution is handled separately by project maintainers.
 - For string concatenation, follow the active Pint/PHP-CS-Fixer configuration. In Weblabor projects that use `weblabormx/weblabor-cs`, concatenation uses one space around the `.` operator: `$prefix . '_suffix'`.
 - Do not "clean up" concatenation by removing those spaces in projects using the Weblabor formatter config.
 
