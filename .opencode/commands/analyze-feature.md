@@ -250,11 +250,13 @@ Validation rules:
 - Show the user the document path or clickable document reference before or during validation.
 - Show each validation iteration as `Document analyzer iteration N started`.
 - Show the exact command being run, including the resolved absolute document path.
-- If the analyzer returns a negative, failed, or non-passing result, treat that result as authoritative feedback.
-- Return the analyzer's requested fixes to `feature-analyst`, update the saved analysis document with the corrected content, then run the same analyzer command again.
-- Keep the document in the queue until the analyzer fully passes. There is no default iteration limit and no timeout-based stopping point.
+- Treat analyzer findings as required document-quality feedback when they are coherent, actionable, and consistent with repository evidence or confirmed product decisions.
+- Return coherent analyzer-requested fixes to `feature-analyst`, update the saved analysis document with the corrected content, then run the same analyzer command again.
+- Do not apply analyzer comments that are incoherent, contradict confirmed user decisions, invent nonexistent repository facts, or would materially expand scope without confirmation; classify them and report the exact reason.
+- If an analyzer finding reveals a material scope, cost, data ownership, permissions, UX, or implementation decision, stop and ask the user to confirm the decision before saving it into the document.
+- Keep the document in the queue until the analyzer fully passes or until the remaining findings are explicitly classified as blocked, incoherent, contradictory, or requiring user confirmation. Do not iterate forever when no coherent document improvement remains.
 - Do not mark the analysis as final-ready, approved, or `Listo para implementar` until the analyzer passes completely.
-- Stop the external analyzer loop only when the analyzer command is unavailable, the analyzer cannot read the document, the user sets an explicit iteration limit, or a missing external answer blocks correctness. In that case, show the exact blocker and leave the document as `Borrador` or `En analisis`.
+- Stop the external analyzer loop only when the analyzer command is unavailable, the analyzer cannot read the document, the user sets an explicit iteration limit, a missing external answer blocks correctness, or the remaining analyzer comments are classified as incoherent/contradictory/too broad for the confirmed scope. In that case, show the exact blocker or classification and leave the document as `Borrador` or `En analisis` unless the user explicitly accepts the documented limitation.
 
 If `../ia-analyzer` does not exist, use the previous internal fallback review flow instead of blocking on the missing analyzer. The fallback must run the document/feature checklist and the available internal review gates for this repository, such as `feature-analysis-reviewer`, `feature-estimator`, and `tech-lead` when they exist; when those agents are not present, use the local checklist plus the pre-existing command review path. Do not mark the document final-ready until the fallback review passes.
 
