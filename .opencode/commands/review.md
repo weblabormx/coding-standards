@@ -5,7 +5,7 @@ description: Use this command when the user wants to review, refactor, or clean 
 
 # /review — Code Review & Refactor
 
-Your goal is to review existing code thoroughly with the external Code Analysis analyzer, identify violations and risks, and optionally implement corrections. External Code Analysis belongs in this command, `/develop`, and `/cleanup`, but `/review` must not get trapped indefinitely when the remaining analyzer output appears inconsistent, low-value, or rule-related rather than a real code defect. When corrections are approved, apply small safe fixes directly, validate them, and commit the validated correction by default unless the user explicitly forbids commits.
+Your goal is to review existing code thoroughly with the external Code Analysis analyzer, identify violations and risks, and optionally implement corrections. External Code Analysis belongs in this command, `/develop`, and `/cleanup`, but `/review` must not get trapped indefinitely when the remaining analyzer output appears inconsistent, low-value, or rule-related rather than a real code defect. When `../ia-analyzer` exists, `/review` must use it; self-review, manual inspection, browser checks, or local reasoning do not replace the external analyzer. When corrections are approved, apply small safe fixes directly, validate them, and commit the validated correction by default unless the user explicitly forbids commits.
 
 During `/review`, try to address most coherent analyzer comments, but do not treat every analyzer comment as automatically correct. Small, safe, clearly valid findings should be fixed when the user approves corrections. Incoherent findings, false positives, formatter friction, or comments that contradict repository evidence should be classified and reported instead of being chased forever. Findings that require a broad refactor beyond the approved review scope must be queued and presented one by one with the file, requested change, risk, smallest proposed fix, and validation plan; ask whether to proceed before implementing each larger refactor.
 
@@ -21,7 +21,7 @@ Call the `analyst` agent to confirm what needs to be reviewed and surface any mi
 
 Check whether the current project's parent directory contains a sibling repository named `ia-analyzer` (`../ia-analyzer`). Do not hardcode a machine-specific absolute analyzer path.
 
-If `../ia-analyzer` exists, run the external analyzer for every target code or implementation file in scope. Run this command from `../ia-analyzer` for each target file:
+If `../ia-analyzer` exists, run the external analyzer for every target code or implementation file in scope. This is mandatory. Run this command from `../ia-analyzer` for each target file:
 
 ```bash
 php artisan validate:now "Code Analysis" "{absolute_file_path}"
@@ -37,6 +37,8 @@ Show the exact command, result, and findings for each file. This command must ke
 - If no finding appears for a file, say so explicitly
 
 If the analyzer cannot read a file or the command is unavailable, stop and report the blocker.
+
+Do not replace this phase with ad hoc inspection. If `../ia-analyzer` exists but the analyzer was not run for every target file, the review is incomplete and must be reported as `BLOCKED`, not `PASS`.
 
 If `../ia-analyzer` does not exist, use the previous internal fallback review flow: call `code-reviewer` to load the relevant standards, classify findings, flag regressions/translation issues, and group findings by file.
 
@@ -94,7 +96,7 @@ After the developer modifies files:
 1. Compare the working tree to the baseline recorded before fixes.
 2. Identify all directly coupled files and flows affected by the diff before running validation. For Livewire components, Blade views, view models, routes, translations, or UI-facing data changes, include the paired view/component and the affected browser route in the validation queue even when only one file was edited.
 3. If a Livewire `render()` variable is moved to a `#[Computed]` method, verify the paired Blade view was updated to reference the computed value as `$this->propertyName`; a bare former render variable such as `$currencyOptions` is a validation failure.
-4. If `../ia-analyzer` exists, validate every code or implementation file modified by this command with `php artisan validate:now "Code Analysis" "{absolute_modified_file_path}"` from `../ia-analyzer`.
+4. If `../ia-analyzer` exists, validate every code or implementation file modified by this command with `php artisan validate:now "Code Analysis" "{absolute_modified_file_path}"` from `../ia-analyzer`. This post-fix analyzer pass is mandatory even when the change looks obvious or small.
 5. Show progress for every iteration. At minimum report:
    - `Code analyzer iteration N started`
    - Files in the validation queue
@@ -113,7 +115,12 @@ After the developer modifies files:
 13. If `tech-lead` concludes the remaining issue is an analyzer or rule inconsistency, and the rest of the modified scope is already clean or materially ready, the command may stop the analyzer loop and close with `PASS WITH REPORTED INCONSISTENCIES` instead of blocking indefinitely.
 14. If `../ia-analyzer` does not exist, use the previous fallback flow: `developer` applies fixes, `code-reviewer` reviews changed files and cycles with `developer` until clean, then `tech-lead` does architecture review.
 
-After each direct-fix set or approved larger item passes all required validation, including browser validation for UI-facing changes, create one focused commit unless the user explicitly forbade commits. Stage only files changed for that validated correction, do not mix unrelated pre-existing changes, and include the commit hash in the result. If a safe commit cannot be created, report the blocker before continuing to unrelated corrections.
+Analyzer iteration requirement:
+- One analyzer run is not enough when fixes were made. Every modified code or implementation file must be revalidated after the last edit affecting it.
+- Continue the analyzer loop until every modified file passes Code Analysis, is blocked by an analyzer/tooling failure, or is explicitly classified through the escalation path below.
+- Do not commit, report `PASS`, or say the file is validated while the last analyzer result for that file is still failing, missing, stale, or from before the latest edit.
+
+After each direct-fix set or approved larger item passes all required validation, including a fresh analyzer pass for modified files and browser validation for UI-facing changes, create one focused commit unless the user explicitly forbade commits. Stage only files changed for that validated correction, do not mix unrelated pre-existing changes, and include the commit hash in the result. If a safe commit cannot be created, report the blocker before continuing to unrelated corrections.
 
 Treat the analyzer as the preferred gate, but not as an infinite loop requirement. Use this escalation logic:
 
@@ -154,6 +161,7 @@ Once validation finishes, present the final result to the user:
 - During refactors, apply most coherent analyzer comments, but do not implement incoherent comments or broad refactors without reporting them and getting user approval
 - If translation issues are found, run `lang:search` and `lang:sync` after corrections are applied
 - If `../ia-analyzer` exists, run the external Code Analysis validation loop for every code or implementation file modified by this command, and keep a visible progress trace with iterations and findings
+- Do not treat a single analyzer attempt as sufficient after code changes; rerun until every modified file has a fresh passing analyzer result or an explicit `BLOCKED`/classified status
 - For UI-facing review corrections, run browser validation before commit; command-line checks and Code Analysis alone are not enough
 - Do not silently ignore analyzer failures; unresolved failures must end either as `BLOCKED` or as `PASS WITH REPORTED INCONSISTENCIES` with a clear explanation
 - If `../ia-analyzer` does not exist, use the previous `developer` → `code-reviewer` → `tech-lead` fallback flow
