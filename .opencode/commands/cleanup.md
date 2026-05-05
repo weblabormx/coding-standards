@@ -99,8 +99,9 @@ If the user already asked for an execution-heavy run, use that as the default in
 For this command, an explicit invocation such as `/cleanup`, "limpia el proyecto", "refactoriza todo", or "dejalo al punto" counts as approval to start the cleanup run unless the user added a restriction that still needs clarification.
 
 Default commit interpretation:
-- If the user asked for a long cleanup run and did not forbid commits, present `Commit per improved primary file` as the selected default
-- If commit preference is unclear and the run is interactive, state the default instead of leaving commit behavior implicit
+- Commits are mandatory by default for `/cleanup` unless the user explicitly forbids commits with wording such as "no commits", "do not commit", or "leave changes uncommitted".
+- Present `Commit per improved primary file` as the selected default for every cleanup run, not as an optional preference.
+- Do not ask for separate commit approval after a cleanup unit passes validation; validation success is the commit trigger.
 
 Do not ask for approval for small direct-fix groups, phase transitions, or end-of-run continuation. The command should continue automatically for direct-fix work, stop on a real blocker, or ask only for queued approval-needed findings that are too broad or risky to apply silently.
 
@@ -231,7 +232,7 @@ For each cleanup group:
 6. `developer` refactors the smallest coherent unit possible
 7. Keep the intended behavior the same
 8. Validate the modified unit immediately
-9. If validation passes, create the commit for that improved primary file or coherent unit, then continue to the next direct-fix unit or group automatically
+9. If validation passes, create the required commit for that improved primary file or coherent unit, then continue to the next direct-fix unit or group automatically
 10. If validation fails, fix only the affected unit and revalidate
 11. If the group reveals an `approval-needed` item, queue it for the approval pass instead of implementing it silently
 12. If the group reveals a larger non-cleanup issue, record it as a follow-up item and continue when safe
@@ -239,7 +240,7 @@ For each cleanup group:
 After all cleanup areas complete the safe direct-fix coverage pass, including unqueued-file reconciliation, process the global `approval-needed` queue one item at a time:
 - Present the file or tightly coupled file set, the evidence found, the standard or project rule involved, the likely impact, the smallest proposed fix, and the validation plan.
 - Ask whether to proceed with that single item.
-- If the user approves, implement only that item, validate it fully, create its commit when validation passes, update the ledger, and then present the next approval-needed item.
+- If the user approves, implement only that item, validate it fully, create the required commit when validation passes, update the ledger, and then present the next approval-needed item.
 - If the user declines or does not decide, mark that item as `blocked` or `recommendation-only` with the reason, then move to the next approval-needed item.
 - Stay inside the cleanup flow until every queued approval-needed item is approved and validated, declined, blocked, or moved to recommendations with an explicit ledger entry.
 
@@ -372,7 +373,7 @@ If a cleanup group stalls:
 
 ## Phase 6 - Commit Rules
 
-If commits are allowed for the cleanup run:
+Commits are required for the cleanup run unless the user explicitly forbade commits:
 - Create one commit per improved primary file as the default behavior
 - Create the commit immediately after that primary file improvement passes its required validation and before moving to the next independent primary file
 - Include both direct-fix and approved approval-needed changes in commits only after their own validation passes
@@ -383,8 +384,9 @@ If commits are allowed for the cleanup run:
 - If a commit cannot be created after validation, stop before continuing to unrelated cleanup work, report the exact blocker, and list the uncommitted changed files
 - Do not push unless the user explicitly asks
 
-If commits are not allowed:
+Only when the user explicitly forbids commits:
 - Still keep the same cleanup grouping and validation boundaries in the report
+- Report each validated improvement that was intentionally left uncommitted because commits were explicitly disabled
 
 ---
 
@@ -429,6 +431,7 @@ Completion wording rules:
 ## Rules
 
 - Treat `/cleanup` as active project-wide cleanup execution by default when the user asks for a broad cleanup run
+- Create commits by default during `/cleanup`; the only valid opt-out is an explicit user instruction forbidding commits
 - Preserve intended behavior unless the user explicitly approves a behavior change
 - Treat explicit cleanup wording as approval to start unless a real ambiguity remains
 - Apply small direct-fix findings automatically after the run is approved; ask only for approval-needed findings that are broad, risky, cross-cutting, or likely to affect multiple flows
