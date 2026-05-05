@@ -5,7 +5,9 @@ description: Use this command when the user wants to review, refactor, or clean 
 
 # /review — Code Review & Refactor
 
-Your goal is to review existing code thoroughly with the external Code Analysis analyzer, identify violations and risks, and optionally implement corrections. External Code Analysis belongs in this command and in `/develop`, but `/review` must not get trapped indefinitely when the remaining analyzer output appears inconsistent, low-value, or rule-related rather than a real code defect.
+Your goal is to review existing code thoroughly with the external Code Analysis analyzer, identify violations and risks, and optionally implement corrections. External Code Analysis belongs in this command, `/develop`, and `/cleanup`, but `/review` must not get trapped indefinitely when the remaining analyzer output appears inconsistent, low-value, or rule-related rather than a real code defect. When corrections are approved, apply small safe fixes directly, validate them, and commit the validated correction by default unless the user explicitly forbids commits.
+
+During `/review`, try to address most coherent analyzer comments, but do not treat every analyzer comment as automatically correct. Small, safe, clearly valid findings should be fixed when the user approves corrections. Incoherent findings, false positives, formatter friction, or comments that contradict repository evidence should be classified and reported instead of being chased forever. Findings that require a broad refactor beyond the approved review scope must be queued and presented one by one with the file, requested change, risk, smallest proposed fix, and validation plan; ask whether to proceed before implementing each larger refactor.
 
 ---
 
@@ -38,13 +40,15 @@ If the analyzer cannot read a file or the command is unavailable, stop and repor
 
 If `../ia-analyzer` does not exist, use the previous internal fallback review flow: call `code-reviewer` to load the relevant standards, classify findings, flag regressions/translation issues, and group findings by file.
 
-When the review scope includes a local user-facing flow, prefer Playwright connected over CDP to inspect the affected screen after fixes:
+When the review scope includes a local user-facing flow, validate it with the global Browser Validation Rule after fixes:
 
 - Read the project URL from `.env`, preferring `APP_URL` when available.
 - If the URL does not include a scheme, prepend `http://`.
-- Ask the user to open Chrome with remote debugging enabled and log in manually when auth is required.
-- Connect Playwright over CDP to that Chrome session and reload after local code changes before checking the flow.
-- If browser validation is not possible, report that explicitly instead of implying the flow was checked visually.
+- Prefer Playwright connected over CDP to a user-opened Chrome session when available.
+- If CDP is unavailable, use an approved equivalent runtime browser path and state which path was used.
+- Ask the user to log in manually in the browser session used for validation when auth is required.
+- Recover safe validation-environment issues before giving up, such as starting the normal dev server, choosing a free temporary local port, or installing missing validation dependencies through the project's package manager and lockfile conventions when safe.
+- If browser validation is still not possible, report that explicitly instead of implying the flow was checked visually.
 
 ---
 
@@ -54,7 +58,9 @@ Present the Code Analysis report when `../ia-analyzer` exists, or the internal c
 
 - Files analyzed
 - Files clean
-- Files with findings
+- Files with direct-fix findings that are small, safe, and behavior-preserving
+- Files with approval-needed findings that are broad, risky, cross-module, or likely to affect multiple flows
+- Recommendation-only findings that should not be implemented in `/review`
 - Open blockers or suspicious analyzer inconsistencies detected so far
 
 Then ask:
@@ -73,6 +79,9 @@ Call the `developer` agent to apply the approved fixes.
 
 Correction scope rules:
 - Implement only the findings approved for correction and the minimum code needed to satisfy them.
+- For approved review corrections, apply small coherent analyzer fixes directly, but pause before implementing analyzer suggestions that expand into broad architectural, data-model, cross-module, product-behavior, or multi-flow refactors.
+- Process larger approval-needed findings one by one: present the file or tightly coupled file set, evidence, likely impact, smallest proposed fix, and validation plan; implement only that item when the user approves it.
+- If an analyzer finding does not make sense after checking repository evidence, do not force a code change just to satisfy it; record the inconsistency and continue with other actionable findings.
 - Do not reformat, reorder, or style-clean unrelated lines while fixing review findings.
 - Do not make whitespace-only, blank-line-only, indentation-only, wrapping-only, import-order-only, or other cosmetic formatting changes unless the approved finding cites an explicit project rule that requires that exact change.
 - Before revalidation, inspect the diff and revert any hunk whose only effect is spacing, blank lines, wrapping, import ordering, or cosmetic formatting not required by an approved rule.
@@ -89,14 +98,17 @@ After the developer modifies files:
    - Files in the validation queue
    - For each repeated finding: `Se encontro X -> arreglando`, `Se encontro X otra vez -> revisar inconsistencia`, or `X resuelto`
    - Current counts: files passing, files failing, findings resolved this iteration, findings still open
-4. If any file fails, return the analyzer findings to `developer`, update the affected files, and rerun Code Analysis for every affected modified code file.
+4. If any file fails, return coherent and scope-safe analyzer findings to `developer`, update the affected files, and rerun Code Analysis for every affected modified code file.
 5. If the developer changes additional code files while fixing analyzer findings, add those files to the validation queue.
-6. If the same finding or essentially the same rule keeps failing after repeated fixes, do not assume the code is wrong forever. Call `tech-lead` to classify the remaining issue as one of:
+6. If a finding would require a broad refactor outside the approved correction scope, stop before implementing it, summarize the requested refactor for the user, and ask whether to proceed.
+7. If the same finding or essentially the same rule keeps failing after repeated fixes, or if the finding appears incoherent before any fix is safe, do not assume the code is wrong forever. Call `tech-lead` to classify the remaining issue as one of:
    - real code defect still pending
    - analyzer or rule inconsistency
    - ambiguous requirement or missing context
-7. If `tech-lead` concludes the remaining issue is an analyzer or rule inconsistency, and the rest of the modified scope is already clean or materially ready, the command may stop the analyzer loop and close with `PASS WITH REPORTED INCONSISTENCIES` instead of blocking indefinitely.
-8. If `../ia-analyzer` does not exist, use the previous fallback flow: `developer` applies fixes, `code-reviewer` reviews changed files and cycles with `developer` until clean, then `tech-lead` does architecture review.
+8. If `tech-lead` concludes the remaining issue is an analyzer or rule inconsistency, and the rest of the modified scope is already clean or materially ready, the command may stop the analyzer loop and close with `PASS WITH REPORTED INCONSISTENCIES` instead of blocking indefinitely.
+9. If `../ia-analyzer` does not exist, use the previous fallback flow: `developer` applies fixes, `code-reviewer` reviews changed files and cycles with `developer` until clean, then `tech-lead` does architecture review.
+
+After each direct-fix set or approved larger item passes validation, create one focused commit unless the user explicitly forbade commits. Stage only files changed for that validated correction, do not mix unrelated pre-existing changes, and include the commit hash in the result. If a safe commit cannot be created, report the blocker before continuing to unrelated corrections.
 
 Treat the analyzer as the preferred gate, but not as an infinite loop requirement. Use this escalation logic:
 
@@ -116,6 +128,8 @@ Once validation finishes, present the final result to the user:
 - Summary of what was corrected
 - Files created or modified
 - Validation method used (`Code Analysis` or internal fallback)
+- Direct-fix findings applied, approval-needed findings processed, and recommendation-only findings left for later
+- Commits created with hash and message, or the exact reason no commit was created
 - Total analyzer iterations performed
 - Per-iteration summary of progress and remaining findings
 - Final status: `PASS`, `PASS WITH REPORTED INCONSISTENCIES`, or `BLOCKED`
@@ -127,9 +141,11 @@ Once validation finishes, present the final result to the user:
 
 ## Rules
 
-- Never implement fixes before the user approves in Phase 3
+- Never implement fixes before the user approves in Phase 3, except when the original user request explicitly asked for direct correction rather than report-only review
+- After correction approval, implement small safe findings directly; present broad or risky findings one by one before implementing each
 - Prioritize bugs, regressions, and standards violations over cosmetic suggestions
 - If a fix would expand scope materially, stop and ask before continuing
+- During refactors, apply most coherent analyzer comments, but do not implement incoherent comments or broad refactors without reporting them and getting user approval
 - If translation issues are found, run `lang:search` and `lang:sync` after corrections are applied
 - If `../ia-analyzer` exists, run the external Code Analysis validation loop for every code or implementation file modified by this command, and keep a visible progress trace with iterations and findings
 - Do not silently ignore analyzer failures; unresolved failures must end either as `BLOCKED` or as `PASS WITH REPORTED INCONSISTENCIES` with a clear explanation

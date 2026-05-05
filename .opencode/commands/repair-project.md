@@ -52,18 +52,18 @@ Before planning repairs, check whether the project has focused validation availa
 
 Inspect, without modifying files:
 - Local project URL in `.env`, preferring `APP_URL`
-- Whether the local server and affected route can be opened in a Chrome session that the user can authenticate manually and expose through remote debugging for Playwright CDP control
+- Whether the local server and affected route can be opened in a real browser session that the user can authenticate manually, preferring Chrome remote debugging for Playwright CDP control when available
 - Relevant artisan, route, config, or build commands that can prove the broken area
 - Existing browser tooling only as context, not as a required workflow step
 - Whether the repaired flow has a practical browser traversal scope such as dashboard, module navigation, index/detail pages, or route group entry points
 
 When browser validation is possible:
-- Use Playwright connected over CDP to a user-opened Chrome session as the required primary way to reproduce and verify the visible failure
+- Use the global Browser Validation Rule, with Playwright connected over CDP to a user-opened Chrome session as the preferred primary way to reproduce and verify the visible failure
 - Identify the traversal scope and entry points that will be used later during browser validation
 
 If browser validation is not possible, tell the user clearly:
 
-> No pude validar este flujo en el navegador con Playwright por CDP porque falta URL local utilizable, servidor levantado, una sesion autenticada en Chrome con remote debugging, o el entorno necesario. Puedo continuar con checks funcionales, artisan, build y comparacion contra la fuente que si funciona, pero la confianza visual sera menor.
+> No pude validar este flujo en un navegador real porque falta URL local utilizable, servidor levantado, una sesion autenticada, acceso a un browser path compatible, o el entorno necesario. Puedo continuar con checks funcionales, artisan, build y comparacion contra la fuente que si funciona, pero la confianza visual sera menor.
 
 When continuing without browser validation:
 - State that validation confidence is lower
@@ -158,7 +158,7 @@ Comparison rules:
 Reproduce or detect the failure with the smallest safe validation first.
 
 Use targeted checks before broad checks:
-- Playwright over CDP for the visible flow when the issue is user-facing and the local URL is available
+- Browser validation under the global Browser Validation Rule for the visible flow when the issue is user-facing and the local URL is available
 - `php artisan route:list` for route or controller failures
 - `php artisan config:clear` or `php artisan view:clear` for local cache issues when safe
 - `composer install` when dependency installation is the suspected issue
@@ -301,9 +301,9 @@ Validation order:
    - Run `npm run build` only when assets, Blade, Livewire views, CSS, or JS changed
 
 6. **Browser validation**
-   - Use Playwright connected over CDP to a user-opened Chrome for repaired user-facing flows using the local project URL from `.env`
+   - Use the global Browser Validation Rule for repaired user-facing flows using the local project URL from `.env`
    - Add `http://` when the URL is missing a scheme
-   - When auth is required, ask the user to open Chrome with remote debugging enabled and log in manually before starting traversal
+   - When auth is required, ask the user to log in manually in the browser session used for traversal
    - Reload after code changes before checking the repaired flow
    - Traverse the reachable in-scope pages for the repaired flow, not only the first visible page
    - Start from the confirmed entry points and build a queue of reachable in-scope pages
