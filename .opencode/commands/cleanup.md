@@ -291,6 +291,10 @@ Recommendation rule:
 
 Every modified cleanup group must be validated before it is treated as complete.
 
+Before validation, identify directly coupled files and flows affected by the diff. For Livewire components, Blade views, view models, routes, translations, or UI-facing data changes, include the paired view/component and affected browser route in the validation queue even when only one file was edited.
+
+If cleanup moves data from a Livewire `render()` variable to a `#[Computed]` method, verify the paired Blade view now references the computed value as `$this->propertyName`; leaving the former bare render variable in Blade is a validation failure.
+
 Validation order for each group:
 
 1. Focused code validation
@@ -332,10 +336,13 @@ When a cleanup group affects a local visible flow:
 - When auth is required, ask the user to log in manually in the browser session used for traversal
 - Recover safe validation-environment issues before giving up, such as starting the normal dev server, choosing a free temporary local port, or installing missing validation dependencies through the project's package manager and lockfile conventions when safe
 - Reload after code changes before checking the updated flow
-- Confirm the flow still behaves the same from the user's perspective
+- Open the affected route or entry point, confirm the page renders without visible errors, and verify the changed data or component output is still visible and correct
+- Traverse the in-scope non-destructive controls needed to prove the changed UI still behaves the same from the user's perspective
 - Report blockers such as auth state, missing server, missing seed data, unavailable route, unavailable browser path, or dependency/tooling failures
 
-Command-line checks, runtime checks, or Code Analysis do not replace visible browser validation for a user-facing flow. If browser validation cannot run, mark that visible-flow validation as `blocked` or `cleaned-unvalidated-fallback` with the exact reason, browser paths, and endpoints tried.
+Command-line checks, runtime checks, or Code Analysis do not replace visible browser validation for a user-facing flow. Browser validation is a commit gate for UI-facing cleanup changes. If browser validation cannot run, mark that visible-flow validation as `blocked` or `cleaned-unvalidated-fallback` with the exact reason, browser paths, and endpoints tried, and do not commit that UI-facing cleanup as validated.
+
+If browser validation reveals an error, missing variable, broken binding, console/runtime failure, or missing displayed data, return to implementation, fix the issue, and rerun Code Analysis plus browser validation for the affected files and flow.
 
 ### Validation Failure Rules
 
@@ -377,6 +384,7 @@ Commits are required for the cleanup run unless the user explicitly forbade comm
 - Create one commit per improved primary file as the default behavior
 - Create the commit immediately after that primary file improvement passes its required validation and before moving to the next independent primary file
 - Include both direct-fix and approved approval-needed changes in commits only after their own validation passes
+- For UI-facing changes, validation passes only after the affected route or flow was opened in a real browser and the changed data or component output was checked
 - When improving one primary file requires related changes in paired views, translations, tests, helpers, or other directly coupled files, include those related files in the same commit and keep the commit message focused on the primary file improvement
 - If multiple primary files are inseparable for one cleanup fix, create the smallest coherent cleanup commit and say why it could not be split as one improved file per commit
 - Stage only the files that belong to the current validated file improvement
@@ -446,6 +454,7 @@ Completion wording rules:
 - Keep a visible progress trace throughout the run
 - Reject whitespace-only, trailing-whitespace-only, final-newline-only, blank-line-only, indentation-only, wrapping-only, import-order-only, and cosmetic formatting diffs unless a concrete cleanup rule explicitly requires them
 - Validate every modified cleanup group before considering it complete
+- For UI-facing cleanup groups, Code Analysis and command-line checks are not enough; open the affected browser flow and verify the visible output before marking the group validated or committing it
 - Use the global Browser Validation Rule for user-facing flows when available
 - Use external Code Analysis for modified files when `../ia-analyzer` exists
 - If `../ia-analyzer` does not exist, use the internal `developer` -> `code-reviewer` fallback for modified files

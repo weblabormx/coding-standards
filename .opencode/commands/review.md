@@ -92,23 +92,28 @@ Correction scope rules:
 After the developer modifies files:
 
 1. Compare the working tree to the baseline recorded before fixes.
-2. If `../ia-analyzer` exists, validate every code or implementation file modified by this command with `php artisan validate:now "Code Analysis" "{absolute_modified_file_path}"` from `../ia-analyzer`.
-3. Show progress for every iteration. At minimum report:
+2. Identify all directly coupled files and flows affected by the diff before running validation. For Livewire components, Blade views, view models, routes, translations, or UI-facing data changes, include the paired view/component and the affected browser route in the validation queue even when only one file was edited.
+3. If a Livewire `render()` variable is moved to a `#[Computed]` method, verify the paired Blade view was updated to reference the computed value as `$this->propertyName`; a bare former render variable such as `$currencyOptions` is a validation failure.
+4. If `../ia-analyzer` exists, validate every code or implementation file modified by this command with `php artisan validate:now "Code Analysis" "{absolute_modified_file_path}"` from `../ia-analyzer`.
+5. Show progress for every iteration. At minimum report:
    - `Code analyzer iteration N started`
    - Files in the validation queue
    - For each repeated finding: `Se encontro X -> arreglando`, `Se encontro X otra vez -> revisar inconsistencia`, or `X resuelto`
    - Current counts: files passing, files failing, findings resolved this iteration, findings still open
-4. If any file fails, return coherent and scope-safe analyzer findings to `developer`, update the affected files, and rerun Code Analysis for every affected modified code file.
-5. If the developer changes additional code files while fixing analyzer findings, add those files to the validation queue.
-6. If a finding would require a broad refactor outside the approved correction scope, stop before implementing it, summarize the requested refactor for the user, and ask whether to proceed.
-7. If the same finding or essentially the same rule keeps failing after repeated fixes, or if the finding appears incoherent before any fix is safe, do not assume the code is wrong forever. Call `tech-lead` to classify the remaining issue as one of:
+6. If any file fails, return coherent and scope-safe analyzer findings to `developer`, update the affected files, and rerun Code Analysis for every affected modified code file.
+7. If the developer changes additional code files while fixing analyzer findings, add those files to the validation queue.
+8. For every correction that affects a user-facing page, Livewire component, Blade view, route, user-facing copy, or data displayed in the UI, open the affected route in a real browser using the global Browser Validation Rule before committing. Confirm the page renders without visible errors and the changed data still appears correctly.
+9. Browser validation is a commit gate for UI-facing review corrections. Do not commit or report `PASS` for that correction until the affected browser flow is opened and checked, or until the item is explicitly marked `BLOCKED` with the exact browser recovery attempts made.
+10. If browser validation reveals an error, missing variable, broken binding, console/runtime failure, or missing displayed data, return to implementation, fix the issue, and rerun analyzer plus browser validation for the affected files and flow.
+11. If a finding would require a broad refactor outside the approved correction scope, stop before implementing it, summarize the requested refactor for the user, and ask whether to proceed.
+12. If the same finding or essentially the same rule keeps failing after repeated fixes, or if the finding appears incoherent before any fix is safe, do not assume the code is wrong forever. Call `tech-lead` to classify the remaining issue as one of:
    - real code defect still pending
    - analyzer or rule inconsistency
    - ambiguous requirement or missing context
-8. If `tech-lead` concludes the remaining issue is an analyzer or rule inconsistency, and the rest of the modified scope is already clean or materially ready, the command may stop the analyzer loop and close with `PASS WITH REPORTED INCONSISTENCIES` instead of blocking indefinitely.
-9. If `../ia-analyzer` does not exist, use the previous fallback flow: `developer` applies fixes, `code-reviewer` reviews changed files and cycles with `developer` until clean, then `tech-lead` does architecture review.
+13. If `tech-lead` concludes the remaining issue is an analyzer or rule inconsistency, and the rest of the modified scope is already clean or materially ready, the command may stop the analyzer loop and close with `PASS WITH REPORTED INCONSISTENCIES` instead of blocking indefinitely.
+14. If `../ia-analyzer` does not exist, use the previous fallback flow: `developer` applies fixes, `code-reviewer` reviews changed files and cycles with `developer` until clean, then `tech-lead` does architecture review.
 
-After each direct-fix set or approved larger item passes validation, create one focused commit unless the user explicitly forbade commits. Stage only files changed for that validated correction, do not mix unrelated pre-existing changes, and include the commit hash in the result. If a safe commit cannot be created, report the blocker before continuing to unrelated corrections.
+After each direct-fix set or approved larger item passes all required validation, including browser validation for UI-facing changes, create one focused commit unless the user explicitly forbade commits. Stage only files changed for that validated correction, do not mix unrelated pre-existing changes, and include the commit hash in the result. If a safe commit cannot be created, report the blocker before continuing to unrelated corrections.
 
 Treat the analyzer as the preferred gate, but not as an infinite loop requirement. Use this escalation logic:
 
@@ -128,6 +133,7 @@ Once validation finishes, present the final result to the user:
 - Summary of what was corrected
 - Files created or modified
 - Validation method used (`Code Analysis` or internal fallback)
+- Browser validation coverage for UI-facing corrections, including routes opened, visible data checked, and blockers if any
 - Direct-fix findings applied, approval-needed findings processed, and recommendation-only findings left for later
 - Commits created with hash and message, or the exact reason no commit was created
 - Total analyzer iterations performed
@@ -148,5 +154,6 @@ Once validation finishes, present the final result to the user:
 - During refactors, apply most coherent analyzer comments, but do not implement incoherent comments or broad refactors without reporting them and getting user approval
 - If translation issues are found, run `lang:search` and `lang:sync` after corrections are applied
 - If `../ia-analyzer` exists, run the external Code Analysis validation loop for every code or implementation file modified by this command, and keep a visible progress trace with iterations and findings
+- For UI-facing review corrections, run browser validation before commit; command-line checks and Code Analysis alone are not enough
 - Do not silently ignore analyzer failures; unresolved failures must end either as `BLOCKED` or as `PASS WITH REPORTED INCONSISTENCIES` with a clear explanation
 - If `../ia-analyzer` does not exist, use the previous `developer` → `code-reviewer` → `tech-lead` fallback flow

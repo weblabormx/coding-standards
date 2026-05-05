@@ -82,6 +82,8 @@ public function render()
 
 In Blade, reference computed properties as `$this->propertyName`.
 
+When moving a value from `render()` data into a `#[Computed]` method, update the paired Blade view in the same change. A Blade reference to the old bare variable is invalid because the value is no longer passed from `render()`.
+
 ```blade
 {{-- Correct --}}
 :options="$this->currencyOptions"
