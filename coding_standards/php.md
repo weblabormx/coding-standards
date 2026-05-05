@@ -16,6 +16,8 @@ When replacing Spanish user-facing copy with a translation helper, update the ap
 
 Do not apply the user-facing copy rule to tests that assert expected rendered text. Test assertions may contain or reference the exact Spanish copy they verify because they are not themselves rendered to users.
 
+Do not apply the user-facing copy rule to internal persisted values, enum/database values, array keys, route names, event names, config keys, or comparison tokens that are not directly rendered to users. For example, a status-to-color map keyed by stored Spanish status values is internal logic, not visible copy.
+
 ### Code Cleanliness
 
 Keep code direct and readable:
