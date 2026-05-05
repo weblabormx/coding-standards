@@ -12,6 +12,8 @@ Do not use this rule to require translation wrappers for already-English text. T
 
 When fixing Spanish user-facing copy, prefer an existing literal English translation key such as `__('Spanish')`, `__('Edit')`, or `__('Remote')`. Do not invent new namespaced translation keys such as `__('module.section.label')` unless the project already has that convention or the current change explicitly adds the required translation entries as part of a deliberate i18n change.
 
+When replacing Spanish user-facing copy with a translation helper, update the appropriate JSON translation file in the same change unless the key already exists. Preserve the original Spanish text exactly as the translation value, including accents, punctuation, capitalization, and spacing. Do not leave the source code changed to `__('English key')` without adding or verifying the matching JSON entry.
+
 Do not apply the user-facing copy rule to tests that assert expected rendered text. Test assertions may contain or reference the exact Spanish copy they verify because they are not themselves rendered to users.
 
 ### Code Cleanliness

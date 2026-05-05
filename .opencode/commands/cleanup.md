@@ -293,8 +293,6 @@ Every modified cleanup group must be validated before it is treated as complete.
 
 Before validation, identify directly coupled files and flows affected by the diff. For Livewire components, Blade views, view models, routes, translations, or UI-facing data changes, include the paired view/component and affected browser route in the validation queue even when only one file was edited.
 
-If cleanup moves data from a Livewire `render()` variable to a `#[Computed]` method, verify the paired Blade view now references the computed value as `$this->propertyName`; leaving the former bare render variable in Blade is a validation failure.
-
 Validation order for each group:
 
 1. Focused code validation
@@ -384,6 +382,7 @@ Commits are required for the cleanup run unless the user explicitly forbade comm
 - Create one commit per improved primary file as the default behavior
 - Create the commit immediately after that primary file improvement passes its required validation and before moving to the next independent primary file
 - Include both direct-fix and approved approval-needed changes in commits only after their own validation passes
+- Commits must include the final corrected state after validation fixes; never commit the first partial change if validation required follow-up corrections
 - For UI-facing changes, validation passes only after the affected route or flow was opened in a real browser and the changed data or component output was checked
 - When improving one primary file requires related changes in paired views, translations, tests, helpers, or other directly coupled files, include those related files in the same commit and keep the commit message focused on the primary file improvement
 - If multiple primary files are inseparable for one cleanup fix, create the smallest coherent cleanup commit and say why it could not be split as one improved file per commit
