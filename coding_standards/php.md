@@ -75,8 +75,6 @@ Use imports for real class references. Do not write fully qualified class names 
 
 This rule applies only to actual class references such as `new \App\Services\Billing\PlanSyncService()`, `\Throwable $e`, or `\App\Models\User::class`. It does not apply to quoted strings, route/resource names, config keys, translation keys, helper/function calls, or short class names that resolve in the current namespace.
 
-Follow Laravel Pint import formatting; do not group imports with curly-brace syntax.
-
 ```php
 // Correct
 use App\Services\Billing\PlanSyncService;
@@ -100,6 +98,7 @@ Always use long-form function syntax, never arrow functions.
 
 Fail this rule only when the source code actually contains the `fn (` or `fn(` token for an arrow function. If every closure uses `function (...) { ... }`, this rule passes.
 If the file contains only `function (...) { ... }` closures, this rule must pass even when the closure is one line long or immediately chained in a collection pipeline.
+Do not identify `function ($item) { ... }`, `each(function ($item) { ... })`, `map(function ($item) { ... })`, or any other long-form closure as an arrow function. Those are compliant long-form closures.
 Do not fail with contradictory reasoning. The presence or absence of the literal `fn` token is the deciding evidence for this rule.
 
 ```php
@@ -110,32 +109,4 @@ Do not fail with contradictory reasoning. The presence or absence of the literal
 
 // Incorrect
 ->whereHas('plan', fn($q) => $q->where('slug', 'free'))
-```
-
-### No Spaces Before `if`
-
-Do not leave a blank line directly before an `if` statement.
-
-Report this rule only when the physical line immediately above the `if` is empty. If the line above contains code, a brace, a closure signature, or any other non-empty source text, the rule passes.
-
-```php
-// Correct
-$value = $this->getValue();
-if (! $value) {
-    return;
-}
-
-// Correct
-'field' => ['required', function ($attribute, $value, $fail) {
-    if (! $value) {
-        return;
-    }
-}],
-
-// Incorrect
-$value = $this->getValue();
-
-if (! $value) {
-    return;
-}
 ```

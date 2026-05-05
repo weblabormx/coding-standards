@@ -6,14 +6,16 @@ Apply these rules only to actual Livewire components, normally classes under `ap
 
 ### Mandatory Structure Order
 
-Keep Livewire components in this order (While they exists):
+Keep Livewire components in this order, using only the parts that exist:
 
 1. `use` statements / traits
 2. Properties
 3. `mount()` when present
 4. Validation rule methods (`rules()`, `validationAttributes()`, `validationMessages()`)
-5. Other methods
-7. `render()` when present
+5. Other methods, including Livewire lifecycle hooks such as `updated*()`
+6. `render()` when present
+
+If there is no `mount()`, validation rule methods may come immediately after properties. A validation method before `updated*()` or another non-validation method is correctly ordered.
 
 Section comments are optional. When used, they must use the multi-line format:
 
