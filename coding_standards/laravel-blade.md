@@ -73,15 +73,17 @@ Every Blade view that reads or mutates protected resources must enforce authoriz
 @endcan
 ```
 
-### No HTML Validation Attributes
+### Backend Validation Is Required
 
-Never add HTML validation attributes (`required`, `min`, `max`, `pattern`, etc.) to inputs inside Livewire views. When validation exists, it belongs in the Livewire component validation layer (`rules()`, `$this->validate()`, form objects, or equivalent), not in HTML attributes. HTML attributes are bypassable client-side and duplicate server-side validation.
+Livewire forms must enforce validation on the backend (`rules()`, `$this->validate()`, form objects, or equivalent). HTML validation attributes such as `required`, `min`, `max`, or `pattern` are optional UI hints only and must not be the only validation.
+
+Prefer not to add new HTML validation attributes when backend validation already covers the rule, because they duplicate server-side validation and can be bypassed client-side. However, do not remove existing HTML validation attributes just for cleanup when they are already present and do not break the flow.
 
 ```blade
-{{-- Correct --}}
+{{-- Correct — backend validation owns the rule --}}
 <x-input wire:model="object.name" :label="__('Name')" />
 
-{{-- Incorrect — required is redundant and bypassable --}}
+{{-- Also acceptable when backend validation exists and the attribute is only a UI hint --}}
 <x-input wire:model="object.name" :label="__('Name')" required />
 ```
 
