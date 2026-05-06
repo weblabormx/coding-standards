@@ -24,8 +24,9 @@ Core behavior:
 
 Coverage contract:
 - Cleanup is not complete just because several groups were improved or the git tree is clean
-- A broad cleanup run must either review, clean, validate, skip with reason, or block with reason every relevant file discovered in the mandatory cleanup areas
+- A broad cleanup run must build a full project-owned file manifest first, then either review, clean, validate, skip with reason, or block with reason every relevant file discovered in the mandatory cleanup areas
 - Relevant files exclude generated or third-party dependency paths such as `vendor/`, `node_modules/`, build output, cache directories, compiled assets, lockfile vendor payloads, and files outside the project scope unless the user explicitly includes them
+- Do not sample files, stop after easy wins, or infer that unvisited files are clean. Every project-owned implementation file in scope needs an explicit terminal ledger entry.
 - Do not present a focused cleanup group as the result of `/cleanup` unless the user explicitly requested a focused/partial cleanup; otherwise continue through the mandatory order or report the run as paused/blocked, not completed
 - Files that are inspected but left unchanged still count as `reviewed`, not `validated`, unless a concrete validation method was run for them
 - The final summary must include a test-like coverage report so the user can see exactly what was checked, changed, validated, skipped, or blocked
@@ -68,7 +69,7 @@ Inspect, without modifying files:
 - Relevant artisan, build, route, or runtime checks that can validate the cleaned area
 
 Validation expectations:
-- If `../ia-analyzer` exists, use external Code Analysis for modified code or implementation files in this command
+- If `../ia-analyzer` exists, use external Code Analysis for every project-owned code or implementation file in the active cleanup scope, not only files that were modified
 - If a cleaned group affects a user-facing flow, browser validation under the global Browser Validation Rule is expected unless a concrete blocker is reported
 - Probe common Chrome remote debugging endpoints such as `http://127.0.0.1:9222/json/version`, `:9223`, and `:9224` before declaring CDP unavailable, then switch to an approved equivalent runtime browser path when CDP is unavailable
 - If no browser path works after safe recovery attempts, stop before closing the affected group and ask the user for the missing browser setup, auth state, server, port, or tooling access
@@ -153,6 +154,7 @@ For each cleanup group, capture:
 - Attempt count
 
 Coverage rules:
+- Before processing the first area, create a full project-owned file manifest with deterministic discovery such as `rg --files`, excluding only generated/vendor/cache/build/dependency paths and any user-excluded scope. Record the total discovered and the exclusion rules used.
 - Build the file queue for the entire active area before cleaning the first file in that area
 - Reconcile discovered files against the project-owned implementation files that belong to the cleanup scope; every project-owned file must be assigned to a cleanup area, marked explicitly out of scope, or skipped with a reason
 - Report queue counts for the active area and keep them updated as `queued`, `reviewed`, `cleaned`, `validated`, `blocked`, and `skipped`
@@ -162,6 +164,7 @@ Coverage rules:
 - Use `cleaned-unvalidated-fallback` only when the file was changed and the strongest available validation could not be run; explain the missing validation
 - Use `blocked` when cleanup is needed but cannot be completed safely in this command; include the blocker
 - Use `skipped` only for files discovered in the queue but explicitly out of cleanup scope; include the reason
+- A file with no terminal ledger entry is unprocessed. If any in-scope file remains unprocessed, the cleanup run must end as `PARTIAL` or `BLOCKED`, not complete.
 - Do not jump to a later cleanup area while the current area still has unreviewed files, unless the current area is empty or blocked by a real environment limitation
 - Do not pick opportunistic files from later areas just because they are easier or already familiar
 - If the project contains both Livewire classes and their Blade views, Livewire must be the first cleanup area processed
@@ -189,6 +192,15 @@ Archivos: total={n}, queued={n}, reviewed={n}, cleaned={n}, validated={n}, block
 ```
 
 The ledger is reporting evidence. It must not claim unit tests, browser checks, analyzer passes, or builds unless those checks actually ran.
+
+Analyzer coverage must use these terminal statuses when Code Analysis or the internal fallback reviews files:
+- `analyzer-pass`: the file passed without requiring changes
+- `analyzer-fixed-pass`: the file had coherent findings, was fixed, and then passed after revalidation
+- `analyzer-classified-nonblocking`: remaining comments were classified as analyzer/rule inconsistency, formatter friction, no logical defect, or not cleanup-safe; include the reason
+- `analyzer-blocked-fail`: a real finding remains or validation failed; include the blocker and last failing evidence
+- `not-validated`: the file did not run through analyzer/fallback; include the exact reason
+
+Do not collapse these into a vague `reviewed` count when reporting validation coverage.
 
 If a group is too large:
 - Split it into phases of 3-5 files or the smallest coherent subsets
@@ -298,13 +310,13 @@ Validation order for each group:
 1. Focused code validation
 2. Focused runtime/artisan/build validation when relevant
 3. Browser validation for user-facing flows when possible
-4. External Code Analysis revalidation for modified code files when available
+4. External Code Analysis or internal fallback coverage for every project-owned code or implementation file in the current cleanup group
 
 ### Code Analysis Validation
 
 Check whether the current project's parent directory contains a sibling repository named `ia-analyzer` (`../ia-analyzer`). Do not hardcode a machine-specific absolute analyzer path.
 
-If `../ia-analyzer` exists, external Code Analysis is required for every modified code or implementation file in the current cleanup group. Run this command from `../ia-analyzer`:
+If `../ia-analyzer` exists, external Code Analysis is required for every project-owned code or implementation file in the current cleanup group, not only the files that were edited. Run this command from `../ia-analyzer`:
 
 ```bash
 php artisan validate:now "Code Analysis" "{absolute_modified_file_path}"
@@ -314,6 +326,7 @@ Rules:
 - The second argument must be the exact absolute path of the modified file
 - Show each analyzer pass as `Code analyzer iteration N started`
 - Show the file queue for the current cleanup group
+- Show analyzer coverage counts for the current group: total files queued, analyzer-pass, analyzer-fixed-pass, analyzer-classified-nonblocking, analyzer-blocked-fail, and not-validated
 - If a file fails, return coherent, cleanup-safe findings to `developer`, fix only the affected files, and rerun validation for the affected modified files in the current group
 - Apply most coherent small analyzer comments during cleanup when they preserve behavior and stay inside the current cleanup group
 - Do not implement analyzer comments that are incoherent, contradict repository evidence, appear to be false positives, or only create formatter/rule churn with no meaningful cleanup benefit; classify and report them instead
@@ -323,7 +336,7 @@ Rules:
 - Treat analyzer results as a strong validation source, but not as an infinite-stop requirement when the remaining failures are narrow, repeated, or likely analyzer/rule friction
 
 If `../ia-analyzer` does not exist:
-- Use the previous internal fallback flow for modified files: `developer` fixes, `code-reviewer` reviews the changed files, and iterate until the group is clean or clearly blocked
+- Use the previous internal fallback flow for every project-owned code or implementation file in the current cleanup group: `code-reviewer` reviews, `developer` fixes coherent findings, and the review/fix loop continues until each file is clean, classified, or clearly blocked
 
 ### Browser Validation
 
@@ -410,6 +423,9 @@ After all cleanup groups, summarize:
   - Code Analysis or internal fallback
   - Real browser coverage, including the browser path used
   - artisan/build/runtime checks
+- Full project-owned file manifest totals: discovered, excluded, assigned to cleanup areas, reviewed, modified, skipped, blocked, and unprocessed
+- Analyzer/fallback validation totals: queued, analyzer-pass, analyzer-fixed-pass, analyzer-classified-nonblocking, analyzer-blocked-fail, and not-validated
+- For every `analyzer-classified-nonblocking`, `analyzer-blocked-fail`, and `not-validated` file, include the file path and exact reason
 - Reported analyzer inconsistencies or files skipped after repeated attempts
 - Direct-fix findings applied automatically, approval-needed findings processed one by one, and recommendation-only findings left for later
 - Files created or modified by this cleanup run, grouped by committed improvement
@@ -429,6 +445,7 @@ That recommendations section should inform the user what is worth doing next wit
 Completion wording rules:
 - Do not say the project, repo, or cleanup run is "clean", "done", or "fully cleaned" just because `git status` is clean
 - Use that wording only when every mandatory cleanup area was either completed, explicitly empty, or explicitly blocked with coverage counts
+- Do not use completion wording when any in-scope project-owned file is unprocessed or lacks a terminal analyzer/fallback status; report `PARTIAL` with the missing coverage instead
 - If only part of the cleanup order was processed, say exactly which areas were completed and which areas remain pending
 - A clean working tree is only git state, not cleanup completion
 - If the final summary does not include the area-by-area ledger, say the run produced code changes but did not satisfy the cleanup reporting contract
@@ -444,6 +461,7 @@ Completion wording rules:
 - Apply small direct-fix findings automatically after the run is approved; ask only for approval-needed findings that are broad, risky, cross-cutting, or likely to affect multiple flows
 - Review every relevant file in strict cleanup order; unchanged files still require an explicit reviewed status
 - Reconcile the discovered file queues before claiming completion so every project-owned implementation file is reviewed, validated, skipped, or blocked with a reason
+- Run Code Analysis or the internal fallback for every project-owned code or implementation file in scope unless a concrete blocker prevents it; report all unvalidated files with reasons
 - Maintain and report the per-file coverage ledger throughout the run
 - Do not stop after every cleanup task just to request permission to continue
 - Do not end the command with a follow-up question; end with the cleanup result and the separate recommendations section
@@ -455,8 +473,8 @@ Completion wording rules:
 - Validate every modified cleanup group before considering it complete
 - For UI-facing cleanup groups, Code Analysis and command-line checks are not enough; open the affected browser flow and verify the visible output before marking the group validated or committing it
 - Use the global Browser Validation Rule for user-facing flows when available
-- Use external Code Analysis for modified files when `../ia-analyzer` exists
-- If `../ia-analyzer` does not exist, use the internal `developer` -> `code-reviewer` fallback for modified files
+- Use external Code Analysis for every project-owned code or implementation file in scope when `../ia-analyzer` exists
+- If `../ia-analyzer` does not exist, use the internal `code-reviewer` -> `developer` fallback for every project-owned code or implementation file in scope
 - Do not let one analyzer-rejected file or one stubborn cleanup group block the rest of the run forever
 - After repeated meaningful attempts, report the blocker or inconsistency and continue with the next independent file or group
 - Process cleanup-relevant larger refactors through the approval-needed queue; record non-cleanup issues as final recommendations instead of silently expanding scope
