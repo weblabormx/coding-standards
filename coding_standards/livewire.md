@@ -123,15 +123,15 @@ Reserve `#[Computed]` for values consumed in the Blade view or reused across mul
 ```php
 // Correct
 public Plan $object;
-public $prices = [];
-public $limits = [];
-public $features = [];
-public $newFeature;
+public $prices = [], $limits = [], $features = [];
+public $newFeature, $otherVariable;
 public $afterDeployCommands = 'composer install';
 
 // Incorrect
-public string $name = '';
-public string $description = '';
+public string $object_id = '';
+public array $prices = [];
+public array $limits = [];
+public string $newFeature = '';
 ```
 
 ### Direct Model Binding
