@@ -170,7 +170,7 @@ Use notifications for passive feedback. Use dialogs for confirmations, blockers,
 
 When converting existing feedback to WireUI or changing the call style, preserve the existing user-facing meaning. Do not replace a specific title, description, or action result with a generic label such as `Success`, `Saved`, or `Error` unless that was already the message or the user explicitly requested new copy.
 
-Use named parameters for notification titles and descriptions. If the existing feedback has both a title and a description/body, keep both fields and wrap the preserved text in translation helpers as required by the language rules. Do not collapse a descriptive message into only a generic title.
+Use named parameters for notification titles and descriptions. If the existing feedback has both a title and a description/body, keep both fields. Do not collapse a descriptive message into only a generic title. Apply the shared language and translation rules from `coding_standards/php.md` separately.
 
 ```php
 $this->notification()->success(
