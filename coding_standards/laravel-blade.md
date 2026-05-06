@@ -40,7 +40,8 @@ For async selects using `async-data` or `:async-data`, `option-label` and `optio
 
 Every Blade view that reads or mutates protected resources must enforce authorization when protected actions or protected data are present.
 
-- Protected mutating action buttons that exist in the view (delete, migrate, edit) must be wrapped in `@can` / `@cannot` directives
+- For protected mutating action buttons that exist in the view (delete, migrate, edit), prefer `@can` / `@cannot` directives when adding or changing authorization visibility
+- Equivalent existing project authorization wrappers are acceptable when they already delegate to policy-backed authorization; do not rewrite them just for style
 - Never duplicate policy logic inside the view. If the policy already checks a condition (e.g. `hasSubscribers`), do not re-check it in Blade — trust the policy
 - The `@can` wrapper controls visibility only; the Livewire component must still have its authoritative server-side guard at the component level, normally in `mount()` as defined in `coding_standards/livewire.md`
 - Do not require `@can` for non-mutating UI controls such as `closeModal`, `cancel`, tab switches, filters, pagination, or other purely local UI state actions.

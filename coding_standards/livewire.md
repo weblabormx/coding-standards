@@ -33,6 +33,8 @@ Livewire components that read or mutate protected resources must enforce a serve
 
 Use one component-level guard in `mount()` for the screen/resource whenever possible. Do not repeat the same authorization in every action when `mount()` already protects the component. Add action-level authorization only when that action touches a different resource or ability.
 
+Prefer policy-backed authorization for protected resources. When a useful policy subject exists, call the policy through `$this->authorize(...)`, `$this->user()->can(...)`, or the project's equivalent authorization helper instead of creating component-specific access helpers that duplicate policy logic.
+
 A hard guard such as `abort_unless(...)` is acceptable when there is no useful policy subject. Public authentication flows and public intake/marketing forms do not require policy authorization unless they access authenticated-only resources.
 
 ```php
