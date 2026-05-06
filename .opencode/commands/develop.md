@@ -52,10 +52,13 @@ After confirmation, or immediately for a small and unambiguous request, call the
 
 For bug fixes, the implementation must be conservative: identify the smallest root-cause fix that makes the confirmed behavior work, preserve existing UI and product behavior outside the defect, and avoid redesigns, rewrites, or opportunistic improvements unless the confirmed scope explicitly includes them.
 
+When modifying or repairing existing functionality, preserve the existing structure and project patterns unless that structure is proven to be the root cause or the confirmed request explicitly asks to change it. Do not replace a working pattern with a different architecture, form surface, component structure, service split, authorization shape, or UI structure just to satisfy a preference. When building something that does not already exist, implement it according to the current standards and project conventions.
+
 The developer must:
 
 - Modify only files required by the confirmed scope.
 - Follow existing codebase patterns and the standards under `coding_standards/` plus guides under `guides/`.
+- Preserve existing patterns for existing features; apply standards to new code without restructuring unrelated working code.
 - Reuse an existing unpushed migration for the same schema/task when safe instead of creating unnecessary follow-up migrations.
 - Return the list of files it created or modified.
 - Apply any later Code Analysis findings sent back by this command.
@@ -178,6 +181,7 @@ Stop here. Do not run extra documentation work as part of this command unless ex
 - Do not ask for confirmation for small, complete, unambiguous requests; proceed directly after recording the scope and baseline
 - Never implement ambiguous, broad, risky, or multi-interpretation requests without explicit user confirmation after Phase 2
 - For bug fixes, prefer the smallest conservative root-cause fix and avoid redesigning or changing unrelated behavior
+- Preserve existing structure when changing existing functionality unless the structure is the confirmed root cause; use current standards for new functionality that does not already exist
 - Unless the user explicitly forbids commits, create one validated commit with the task name after implementation and validation pass
 - Reuse safe unpushed migrations for the same task/schema instead of creating unnecessary follow-up migrations
 - Always run impact analysis and validation that matches the change type before committing, including migrations, frontend proof/build, and browser validation for user-facing flows when available

@@ -7,6 +7,8 @@ name: repair-project
 
 Your goal is to restore functionality as quickly and safely as possible with the smallest practical diff.
 
+Repair existing functionality by preserving the current project's structure and working patterns whenever possible. Do not replace the existing architecture, form surface, component structure, service split, authorization shape, or UI structure unless that structure is proven to be the breakage source or the user/known-working source confirms the structural change is required.
+
 Treat this command as a repair exception:
 - Do not run external Code Analysis from `../ia-analyzer`
 - Do not invoke `/review`, `/cleanup`, `/finish`, or standards-only sweeps during the repair
@@ -420,6 +422,7 @@ For `control-total`, use `docs/control-total` as the project documentation sourc
 - Compare against the working source when one exists
 - Do not copy blindly from the working source
 - Do not perform general cleanup or broad refactor in this command
+- Do not restructure existing working patterns as part of repair unless that structure is the confirmed cause of the breakage
 - Do not change product behavior unless the working source or user confirms that behavior is correct
 - Stop and ask when the correct behavior is ambiguous
 - Prefer targeted validation early and broader validation after repairs pass
