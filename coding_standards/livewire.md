@@ -116,7 +116,6 @@ Reserve `#[Computed]` for values consumed in the Blade view or reused across mul
 
 - Do not declare types on simple (non-object) properties
 - Typed properties only required for Eloquent model objects
-- Declare multiple simple untyped properties with the same visibility on one line using comma-separated declarations. Do not split adjacent simple public properties into one declaration per line.
 - Keep typed Eloquent model/object properties as their own declarations.
 - Never initialize string properties to empty string (`''`)
 - A meaningful non-empty default string is allowed when it is intentional UI or workflow state. Do not fail this rule just because a simple property has a non-empty string default.
@@ -124,13 +123,13 @@ Reserve `#[Computed]` for values consumed in the Blade view or reused across mul
 ```php
 // Correct
 public Plan $object;
-public $prices = [], $limits = [], $features = [], $newFeature;
-public $afterDeployCommands = 'composer install';
-
-// Incorrect
 public $prices = [];
 public $limits = [];
 public $features = [];
+public $newFeature;
+public $afterDeployCommands = 'composer install';
+
+// Incorrect
 public string $name = '';
 public string $description = '';
 ```
