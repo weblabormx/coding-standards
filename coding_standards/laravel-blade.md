@@ -36,6 +36,16 @@ For async selects using `async-data` or `:async-data`, `option-label` and `optio
 <x-select :async-data="route('api.products.index')" option-label="name" option-value="id" wire:model.live="product" />
 ```
 
+### User Feedback And Error States
+
+Interactive Blade and Livewire UI must give understandable feedback when an action cannot complete or input is invalid.
+
+- Forms must render validation errors near the relevant fields using project form components or the project's established error-display pattern.
+- Buttons or actions that can fail must surface a clear user-facing message through the existing feedback pattern, such as validation errors, WireUI notifications/dialogs, inline errors, or an existing alert component.
+- Do not leave a user action with no visible result when the operation is blocked, rejected, invalid, or fails server-side.
+- Error text must explain what happened or what the user needs to change. Generic messages such as `Error`, `Invalid`, or `Something went wrong` are not enough when the code knows the specific reason.
+- It is acceptable for purely local UI controls such as tabs, dropdown toggles, modal close buttons, filters, and pagination to avoid explicit success/error messages when they are not performing a risky or persistent operation.
+
 ### Authorization in Livewire Components
 
 Every Blade view that reads or mutates protected resources must enforce authorization when protected actions or protected data are present.
