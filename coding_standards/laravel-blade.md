@@ -42,6 +42,8 @@ Interactive Blade and Livewire UI must give understandable feedback when an acti
 
 - Forms must render validation errors near the relevant fields using project form components or the project's established error-display pattern.
 - Buttons or actions that can fail must surface a clear user-facing message through the existing feedback pattern, such as validation errors, WireUI notifications/dialogs, inline errors, or an existing alert component.
+- Elements that visually look like action buttons must perform an action, navigate, open/close UI, submit, dispatch an event, or clearly communicate why they are unavailable. If an element is only informational or decorative, do not style it like an actionable button; use text, badge, label, tooltip, disabled state, or another non-action pattern instead.
+- Report a button-like element as a UX error when it has no click/navigation/submission behavior and no clear unavailable/disabled semantics.
 - Do not leave a user action with no visible result when the operation is blocked, rejected, invalid, or fails server-side.
 - Error text must explain what happened or what the user needs to change. Generic messages such as `Error`, `Invalid`, or `Something went wrong` are not enough when the code knows the specific reason.
 - It is acceptable for purely local UI controls such as tabs, dropdown toggles, modal close buttons, filters, and pagination to avoid explicit success/error messages when they are not performing a risky or persistent operation.
