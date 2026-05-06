@@ -75,6 +75,8 @@ Remove wrapper `div`s that have no layout, styling, behavior, or grouping purpos
 
 A wrapper is valid when it provides spacing, padding, border, overflow, positioning, flex/grid layout, Alpine/Livewire behavior, conditional rendering, semantic grouping, or wraps multiple meaningful children.
 
+In Livewire views, the root wrapper required to keep multiple sibling elements under one root is valid even if it has no classes. Do not report the first/root `div` when it wraps several meaningful child elements. Report it only when it is a redundant wrapper around a single meaningful child and removing it would still leave one valid root element.
+
 Pass spacing/layout classes directly to a component when the wrapper exists only to style that component.
 
 ```blade
