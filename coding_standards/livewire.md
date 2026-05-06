@@ -212,7 +212,11 @@ Keep validation aligned with the persisted contract when the field clearly maps 
 
 Do not invent database constraints from a snippet. If the reviewed code does not show that a field is persisted, treat it as component state.
 
-For user-facing validation names, prefer `validationAttributes()` / `attributes()`. Use `messages()` only when the message wording is genuinely custom, not just Laravel's default message with a translated field name.
+For user-facing validation names, every validated field that can appear in a validation error must have a human-readable attribute name. Define it in the component with `validationAttributes()` / `attributes()`, or verify that it already exists in the relevant `lang/{locale}/validation.php` `attributes` array.
+
+Use `messages()` only when the message wording is genuinely custom, not just Laravel's default message with a translated field name. Do not add custom messages just to compensate for missing attribute names.
+
+When adding or changing validation rules, validate that the field names shown to the user resolve correctly in the active locale. Do not assume nested keys such as `object.name`, `items.*.amount`, or `billing_plan.prices.*.name` will display correctly unless they are covered by component attributes or language attributes.
 
 ```php
 // Correct
