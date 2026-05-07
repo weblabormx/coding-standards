@@ -8,10 +8,10 @@ description: Reviews code against Weblabor coding standards. Used as the interna
 Review code against Weblabor coding standards. When `../ia-analyzer` exists, commands should prefer external Code Analysis with:
 
 ```bash
-php artisan validate:now "Code Analysis" "{absolute_modified_file_path}"
+php artisan validate:now "{absolute_modified_file_path}"
 ```
 
-from `../ia-analyzer` for every modified code file.
+from `../ia-analyzer` for every modified code file. Pass only the absolute file path; do not pass an analysis type or context text.
 
 ## Standards Source
 

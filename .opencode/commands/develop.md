@@ -95,10 +95,10 @@ Check whether the current project's parent directory contains a sibling reposito
 If `../ia-analyzer` exists, external Code Analysis is required in this command. Run this command from `../ia-analyzer` for each modified code or implementation file:
 
 ```bash
-php artisan validate:now "Code Analysis" "{absolute_modified_file_path}"
+php artisan validate:now "{absolute_modified_file_path}"
 ```
 
-The second argument must be the exact absolute path of the modified file.
+The only argument must be the exact absolute path of the modified file. Do not pass an analysis type or extra context text; the analyzer detects the file type and rules automatically.
 
 Validation rules:
 

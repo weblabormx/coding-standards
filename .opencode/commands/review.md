@@ -24,10 +24,10 @@ Check whether the current project's parent directory contains a sibling reposito
 If `../ia-analyzer` exists, run the external analyzer for every target code or implementation file in scope. This is mandatory. Run this command from `../ia-analyzer` for each target file:
 
 ```bash
-php artisan validate:now "Code Analysis" "{absolute_file_path}"
+php artisan validate:now "{absolute_file_path}"
 ```
 
-The second argument must be the exact absolute path of the file being reviewed.
+The only argument must be the exact absolute path of the file being reviewed. Do not pass an analysis type or extra context text; the analyzer detects the file type and rules automatically.
 
 Show the exact command, result, and findings for each file. This command must keep a visible review trace from the start:
 
@@ -95,7 +95,7 @@ After the developer modifies files:
 
 1. Compare the working tree to the baseline recorded before fixes.
 2. Identify all directly coupled files and flows affected by the diff before running validation. For Livewire components, Blade views, view models, routes, translations, or UI-facing data changes, include the paired view/component and the affected browser route in the validation queue even when only one file was edited.
-3. If `../ia-analyzer` exists, validate every code or implementation file modified by this command with `php artisan validate:now "Code Analysis" "{absolute_modified_file_path}"` from `../ia-analyzer`. This post-fix analyzer pass is mandatory even when the change looks obvious or small.
+3. If `../ia-analyzer` exists, validate every code or implementation file modified by this command with `php artisan validate:now "{absolute_modified_file_path}"` from `../ia-analyzer`. This post-fix analyzer pass is mandatory even when the change looks obvious or small.
 4. Show progress for every iteration. At minimum report:
    - `Code analyzer iteration N started`
    - Files in the validation queue

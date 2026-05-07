@@ -319,11 +319,11 @@ Check whether the current project's parent directory contains a sibling reposito
 If `../ia-analyzer` exists, external Code Analysis is required for every project-owned code or implementation file in the current cleanup group, not only the files that were edited. Run this command from `../ia-analyzer`:
 
 ```bash
-php artisan validate:now "Code Analysis" "{absolute_modified_file_path}"
+php artisan validate:now "{absolute_file_path}"
 ```
 
 Rules:
-- The second argument must be the exact absolute path of the modified file
+- The only argument must be the exact absolute path of the file being validated. Do not pass an analysis type or extra context text; the analyzer detects the file type and rules automatically.
 - Show each analyzer pass as `Code analyzer iteration N started`
 - Show the file queue for the current cleanup group
 - Show analyzer coverage counts for the current group: total files queued, analyzer-pass, analyzer-fixed-pass, analyzer-classified-nonblocking, analyzer-blocked-fail, and not-validated
