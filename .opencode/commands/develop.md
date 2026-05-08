@@ -31,6 +31,12 @@ If a plan from `/plan` was provided, follow it exactly — do not deviate withou
 
 Before implementing, record the current working tree state so pre-existing user changes are not confused with files modified by this command.
 
+Concurrent work protection:
+- Treat any pre-existing modified, staged, untracked, or committed work as belonging to the user or another concurrent task unless this command created it.
+- Do not discard, restore, reset, clean, stash, overwrite, amend, squash, rebase, or otherwise rewrite work that is outside this command's confirmed scope.
+- Do not use destructive cleanup commands such as `git reset --hard`, `git checkout -- <path>`, `git restore <path>`, `git clean`, or `git stash` to make the working tree look clean.
+- If unrelated work prevents safe implementation, validation, staging, or committing, stop and report the exact blocker instead of modifying that work.
+
 Migration handling before implementation:
 - If the task needs schema changes, inspect existing migration files in the working tree and unpushed commits on the current branch before creating a new migration
 - Reuse or edit an existing unpushed migration for the same task/table/schema change when it has not been shared, pushed, or deployed
@@ -147,6 +153,7 @@ Commit rules:
 
 - Review `git status` and the diff from the baseline recorded before implementation
 - Stage only files changed by this command; never stage unrelated pre-existing user changes
+- Never discard, revert, stash, reset, clean, amend, squash, rebase, or otherwise rewrite unrelated work or commits to create the commit for this command
 - Use the confirmed task name as the commit message when it is already concise
 - If the task name is too long or not commit-friendly, use a concise task-based message that preserves the task intent
 - Prefer conventional prefixes when the task clearly fits, such as `feat:`, `fix:`, `docs:`, `refactor:`, or `chore:`
@@ -183,6 +190,7 @@ Stop here. Do not run extra documentation work as part of this command unless ex
 - For bug fixes, prefer the smallest conservative root-cause fix and avoid redesigning or changing unrelated behavior
 - Preserve existing structure when changing existing functionality unless the structure is the confirmed root cause; use current standards for new functionality that does not already exist
 - Unless the user explicitly forbids commits, create one validated commit with the task name after implementation and validation pass
+- Protect concurrent work: modify, validate, stage, and commit only this command's files; never discard unrelated files or rewrite unrelated commits
 - Reuse safe unpushed migrations for the same task/schema instead of creating unnecessary follow-up migrations
 - Always run impact analysis and validation that matches the change type before committing, including migrations, frontend proof/build, and browser validation for user-facing flows when available
 - If validation finds an error caused by the implementation, fix it and rerun the affected validation before reporting success
