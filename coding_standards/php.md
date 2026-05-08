@@ -10,6 +10,8 @@ User-facing non-English copy must live in translation files, not directly in PHP
 
 Do not use this rule to require translation wrappers for already-English text. Translation helper usage is a separate consistency concern.
 
+When adding new localized user-facing copy, use translation helpers and update every project locale JSON file that exists for the UI, commonly `lang/en.json` and `lang/es.json`. Do not add the helper in PHP/Blade without verifying or adding the matching entries in those locale files.
+
 When fixing user-facing non-English copy, prefer a literal translation key such as `__('Format saved')`, `__('Edit')`, or `__('Remote')`. Do not invent abstract, numbered, variable-like, or namespaced translation keys such as `__('validator.text1')`, `__('message_1')`, or `__('module.section.label')` unless the project already has that convention or the current change explicitly adds the required translation entries as part of a deliberate i18n change.
 
 When replacing user-facing non-English copy with a translation helper, update the appropriate JSON translation file in the same change unless the key already exists. Preserve the original visible text exactly as the translation value, including accents, punctuation, capitalization, and spacing. Do not leave the source code changed to `__('English key')` without adding or verifying the matching JSON entry.

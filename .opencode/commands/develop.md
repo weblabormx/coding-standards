@@ -88,6 +88,7 @@ Impact analysis is required before validation:
 
 Required validation by change type:
 - If PHP, Laravel, Livewire, routes, policies, observers, models, services, config, or backend behavior changed, run the narrowest relevant artisan/runtime checks and any project-specific validation that proves the behavior works
+- Do not run full test suites or broad automated tests by default. Run tests only when the user explicitly asks for tests, when the task modifies tests or test infrastructure, or when a focused existing test is the narrowest practical validation for the changed behavior.
 - If migrations were added or modified, confirm database env is configured, report exact missing env keys when blocked, run `php artisan migrate` in local/development, and fix migration errors before continuing
 - If seeders or seeded data changed, confirm database env is configured, report exact missing env keys when blocked, and run the relevant seeder or `php artisan db:seed` in local/development when safe for the configured database
 - If frontend assets, Blade, Livewire views, CSS, JS, Vite, or design changed, run the project's frontend proof/build command; prefer `npm run proof` when the project defines it, otherwise run `npm run build`
@@ -193,6 +194,7 @@ Stop here. Do not run extra documentation work as part of this command unless ex
 - Protect concurrent work: modify, validate, stage, and commit only this command's files; never discard unrelated files or rewrite unrelated commits
 - Reuse safe unpushed migrations for the same task/schema instead of creating unnecessary follow-up migrations
 - Always run impact analysis and validation that matches the change type before committing, including migrations, frontend proof/build, and browser validation for user-facing flows when available
+- Do not run full test suites by default during `/develop`; prefer the narrowest validation that proves the specific change works
 - If validation finds an error caused by the implementation, fix it and rerun the affected validation before reporting success
 - Keep changes minimal — only what was defined in requirements
 - Do not run formatter commands during implementation or validation unless the user explicitly asks for formatting; report formatter-owned issues instead
