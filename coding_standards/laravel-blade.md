@@ -12,6 +12,8 @@ Use project form components such as `<x-input>`, `<x-select>`, `<x-textarea>`, `
 
 Avoid raw `<input>`, `<select>`, `<option>`, `<textarea>`, and similar controls when an equivalent project component exists. Project components provide consistent styling, labels, errors, accessibility, Livewire behavior, and validation presentation.
 
+For date fields, use the project `<x-date-input>` component instead of raw HTML date inputs or generic inputs with `type="date"`. The date component handles the project's timezone behavior consistently.
+
 Raw HTML controls are allowed for hidden inputs, vendor-required markup, small browser-native controls with no project component equivalent, or cases where the existing component cannot support the required behavior. When using a raw control, the reason should be clear from nearby context.
 
 ```blade
@@ -22,6 +24,12 @@ Raw HTML controls are allowed for hidden inputs, vendor-required markup, small b
 
 {{-- Correct --}}
 <x-select wire:model="user.role" :options="$roleOptions" option-key-value />
+
+{{-- Wrong --}}
+<x-input type="date" wire:model="object.starts_at" />
+
+{{-- Correct --}}
+<x-date-input wire:model="object.starts_at" />
 ```
 
 ### `x-select` Options Format
