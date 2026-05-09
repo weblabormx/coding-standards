@@ -44,6 +44,29 @@ For async selects using `async-data` or `:async-data`, `option-label` and `optio
 <x-select :async-data="route('api.products.index')" option-label="name" option-value="id" wire:model.live="product" />
 ```
 
+### Livewire Form Submission
+
+When a Blade or Livewire UI contains inputs that are submitted by one primary action, wrap those fields in a `<form>` and bind the Livewire action on the form with `wire:submit` or the project's established submit directive. The primary action must be a submit button so pressing Enter from an input submits the form.
+
+Do not rely only on `wire:click` on the primary save/search/submit button for a real form, because that breaks normal keyboard submission. Secondary actions inside the form, such as cancel, close, add row, remove row, or local toggles, must use `type="button"` when they should not submit the form.
+
+This rule does not apply to isolated buttons, links, tabs, dropdown toggles, pagination, instant filters that apply through live model updates without an explicit submit action, or UI controls that are not submitting a set of inputs.
+
+```blade
+{{-- Wrong --}}
+<div>
+    <x-input wire:model="object.name" :label="__('Name')" />
+    <x-button wire:click="save">{{ __('Save') }}</x-button>
+</div>
+
+{{-- Correct --}}
+<form wire:submit="save">
+    <x-input wire:model="object.name" :label="__('Name')" />
+    <x-button type="submit">{{ __('Save') }}</x-button>
+    <x-button type="button" wire:click="closeModal">{{ __('Cancel') }}</x-button>
+</form>
+```
+
 ### User Feedback And Error States
 
 Interactive Blade and Livewire UI must give understandable feedback when an action cannot complete or input is invalid.
