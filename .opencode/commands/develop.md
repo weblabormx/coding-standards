@@ -83,6 +83,7 @@ Validation is mandatory for every implementation. Before choosing checks, analyz
 Impact analysis is required before validation:
 - Inspect direct references to each modified class, component, route, view, helper, config key, translation key, event, job, migration, or public API touched by the change.
 - Identify coupled files and user flows that could reasonably be affected even when they were not edited.
+- When modified code reads models, relationships, lists, tables, detail screens, Livewire render/computed data, API resources, or other persisted data, identify the query paths, relationships accessed, and whether the change can introduce N+1 queries or unnecessary repeated queries.
 - Add those coupled flows to the validation plan, or explicitly record why they are not affected.
 - If the impact analysis reveals a broader or riskier scope than the user confirmed, stop and ask before expanding the implementation.
 
@@ -94,6 +95,7 @@ Required validation by change type:
 - If frontend assets, Blade, Livewire views, CSS, JS, Vite, or design changed, run the project's frontend proof/build command; prefer `npm run proof` when the project defines it, otherwise run `npm run build`
 - If composer dependencies, autoloaded classes, package discovery, or PHP configuration changed, run the relevant Composer/artisan checks needed to prove the app still boots
 - If the task affects translations or user-facing copy, run the relevant translation sync/search checks used by the project
+- If model queries, Eloquent relationships, list/detail screens, Livewire render/computed data, API resources, table data, or other data-loading behavior changed, validate the affected query behavior. Check for relationships accessed in loops, views, computed properties, resources, or table rows; add or preserve eager loading when it is needed by the confirmed scope; and confirm the change did not introduce an obvious N+1 or repeated-query regression. Use the narrowest practical evidence available, such as code inspection, focused runtime/browser flow, query logging, Debugbar/Telescope output, or existing project query tools, and report the exact blocker when query evidence cannot be collected.
 - If the task affects a user-facing flow and a local URL is available, validate it in a real browser after command-line checks pass
 
 
@@ -172,6 +174,7 @@ Once validation passes and the automatic commit step is complete or explicitly s
 - Summary of what was implemented
 - Files created or modified
 - Impact analysis result, including coupled files or flows checked and any intentionally excluded areas
+- Query and eager-loading validation result when data-loading code was touched, including relations or repeated-query risks checked and any blockers
 - Validation method used (`Code Analysis` plus required command/browser checks, or focused fallback), iterations, and final pass status
 - Migration handling result when migrations were involved, including whether an existing unpushed migration was reused or a new migration was necessary
 - Browser validation coverage for user-facing flows, including routes/pages/interactions checked and pass/fail/blocker counts
@@ -194,6 +197,7 @@ Stop here. Do not run extra documentation work as part of this command unless ex
 - Protect concurrent work: modify, validate, stage, and commit only this command's files; never discard unrelated files or rewrite unrelated commits
 - Reuse safe unpushed migrations for the same task/schema instead of creating unnecessary follow-up migrations
 - Always run impact analysis and validation that matches the change type before committing, including migrations, frontend proof/build, and browser validation for user-facing flows when available
+- For data-loading changes, inspect query paths and eager loading; do not introduce N+1 or repeated-query regressions
 - Do not run full test suites by default during `/develop`; prefer the narrowest validation that proves the specific change works
 - If validation finds an error caused by the implementation, fix it and rerun the affected validation before reporting success
 - Keep changes minimal — only what was defined in requirements
