@@ -11,6 +11,55 @@
 - Static query/finder methods must name the returned subject. Filters may appear after the subject, e.g. `getPricesByInterval`.
 - Comments are allowed when they mark real structural groups or explain non-obvious domain logic. Decorative comments are not allowed.
 
+### Eloquent Query Building
+
+Do not use `Model::query()` in ordinary Eloquent chains. Prefer calling scopes and builder methods directly on the model, such as `Project::active()->orderBy('name')->get()`, instead of `Project::query()->active()->orderBy('name')->get()`.
+
+`Model::query()` is allowed only when the code truly needs an explicit `Eloquent\Builder` instance, such as passing a builder to another API, returning a typed builder from a method, or building a query from a dynamic model class like `$modelClass::query()`. Do not add `query()` only to start a normal chain.
+
+```php
+// Wrong
+return Project::query()
+    ->active()
+    ->orderBy('name')
+    ->get();
+
+// Correct
+return Project::active()
+    ->orderBy('name')
+    ->get();
+```
+
+For simple conditional Eloquent filters, keep the query as a fluent chain and use `when()` instead of creating a mutable `$query` variable and applying filters through separated `if` blocks.
+
+Use long-form `function` closures in `when()` callbacks, following the PHP closure rule. Use a separate `$query` variable only when the conditional composition is too complex for a readable `when()` chain, when multiple branches return materially different query shapes, or when an external API requires a builder instance.
+
+```php
+// Wrong
+$query = Project::active();
+
+if ($search) {
+    $query->where('name', 'like', "%{$search}%");
+}
+
+if ($planId) {
+    $query->where('plan_id', $planId);
+}
+
+return $query->orderBy('name')->get();
+
+// Correct
+return Project::active()
+    ->when($search, function ($query) use ($search) {
+        $query->where('name', 'like', "%{$search}%");
+    })
+    ->when($planId, function ($query) use ($planId) {
+        $query->where('plan_id', $planId);
+    })
+    ->orderBy('name')
+    ->get();
+```
+
 ### Rich Domain Models
 
 When a domain action belongs to a model, expose it through a model method. Livewire components and controllers call the model method, not the service/job directly.
