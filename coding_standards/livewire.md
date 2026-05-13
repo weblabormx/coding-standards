@@ -35,14 +35,32 @@ Use one component-level guard in `mount()` for the screen/resource whenever poss
 
 Prefer policy-backed authorization for protected resources. When a useful policy subject exists, call the policy through `$this->authorize(...)`, `$this->user()->can(...)`, or the project's equivalent authorization helper instead of creating component-specific access helpers that duplicate policy logic.
 
+Do not require `$this->authorize(...)` just because a Livewire component is authenticated or rendered inside the admin/app area. Authorization is required when the component reads or mutates a protected resource with a useful policy subject, such as a model instance, model class, tenant/team/company resource, or permission-backed admin resource.
+
+General authenticated pages such as dashboards, home screens, account/profile screens for the current user, settings that every authenticated user may access, and aggregate pages without a specific protected resource do not need a policy or `$this->authorize(...)` unless the project already has an explicit policy/permission for that exact screen or the component exposes protected cross-user/cross-tenant data.
+
+Do not create a new policy, permission, or component-specific helper only to satisfy this rule. If no useful policy subject exists, leave the component without policy authorization or use the existing route, middleware, or auth guard as the boundary. Use `abort_unless(...)` only for a real non-policy condition that must be enforced server-side.
+
 A hard guard such as `abort_unless(...)` is acceptable when there is no useful policy subject. Public authentication flows and public intake/marketing forms do not require policy authorization unless they access authenticated-only resources.
 
 ```php
-// Correct
+// Correct — model resource has a policy subject
 public function mount(BillingPlan $billing_plan)
 {
     $this->authorize('view', $billing_plan);
     $this->billingPlan = $billing_plan;
+}
+
+// Correct — current-user profile screen; route/auth middleware is enough unless the project has a specific policy
+public function mount()
+{
+    $this->user = auth()->user();
+}
+
+// Incorrect — invents authorization for a general dashboard with no protected policy subject
+public function mount()
+{
+    $this->authorize('viewDashboard');
 }
 
 // Incorrect — protected component has no server-side guard
