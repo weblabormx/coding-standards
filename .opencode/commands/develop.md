@@ -19,11 +19,17 @@ If the request is already complete and unambiguous, analyst confirms quickly and
 
 ## Phase 2 — Confirm Or Proceed
 
-Decide whether explicit user confirmation is needed before changing the codebase.
+Decide whether explicit user confirmation is needed before changing the codebase. The default is to ask for confirmation unless the command is 100% sure the request is small, complete, unambiguous, and low risk.
 
-If the request is small, complete, and unambiguous, do not ask for confirmation. Briefly state the understood scope, record the baseline, and proceed directly to implementation.
+Proceed directly only when all of these are true:
+- The request is a small, localized change or bug fix with an obvious target.
+- The exact file, component, route, UI element, behavior, or data flow to change is clear after code inspection.
+- There is only one reasonable implementation path and it does not require choosing between product, UX, data, schema, permission, or architecture options.
+- The change does not affect a broad or risky area, schema, data migration, permissions, security, billing, destructive actions, or cross-module behavior.
 
-Ask for explicit confirmation only when the request is unclear, could reasonably be interpreted in more than one way, affects a broad or risky area, changes data/schema/permissions/security, or requires choosing among implementation options.
+When proceeding directly, briefly state the understood scope, why it is unambiguous, record the baseline, and implement only that scope.
+
+Ask for explicit confirmation before implementation whenever any part of the request is unclear, broad, risky, multi-interpretation, or larger than a small localized change. If the command cannot clearly explain why direct implementation is safe, it must ask instead of guessing.
 
 For UI requests, treat generic references such as "the icon", "the button", "the modal", "the input", "the page", or "the layout" as ambiguous when code inspection shows more than one plausible target. Ask which route, component, layout, or element the user means before changing code.
 
@@ -189,8 +195,9 @@ Stop here. Do not run extra documentation work as part of this command unless ex
 ## Rules
 
 - Never skip the analyst step, even for small changes
-- Do not ask for confirmation for small, complete, unambiguous requests; proceed directly after recording the scope and baseline
-- Never implement ambiguous, broad, risky, or multi-interpretation requests without explicit user confirmation after Phase 2
+- Ask for confirmation by default unless the request is 100% small, complete, unambiguous, low risk, and has one obvious implementation path
+- Proceed directly only after stating the understood scope, why it is unambiguous, and recording the baseline
+- Never implement ambiguous, broad, risky, multi-interpretation, or larger-than-localized requests without explicit user confirmation after Phase 2
 - For bug fixes, prefer the smallest conservative root-cause fix and avoid redesigning or changing unrelated behavior
 - Preserve existing structure when changing existing functionality unless the structure is the confirmed root cause; use current standards for new functionality that does not already exist
 - Unless the user explicitly forbids commits, create one validated commit with the task name after implementation and validation pass
