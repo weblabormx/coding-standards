@@ -14,6 +14,7 @@ This repository is the single source of truth for shared coding rules, assistant
 | [AI Assistants](guides/ai-assistants.md) | Shared workflow, command system, and agent responsibilities |
 | [Feature Analysis](guides/feature-analysis.md) | How to write and validate feature analysis documents |
 | [Documentation](guides/documentation.md) | How project documentation should be organized and maintained |
+| [How to Generate a CRUD](guides/programming/how-to-generate-crud.md) | How to create CRUDs with Laravel Front, policies, observers, and optional Livewire overrides |
 
 ## Code Standards
 
