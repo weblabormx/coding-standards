@@ -236,13 +236,13 @@ After the `feature-analyst` creates or updates the analysis document, check whet
 If `../ia-analyzer` exists, external Document Analysis is mandatory and becomes the approval gate for this command. Run this command from `../ia-analyzer`:
 
 ```bash
-php artisan validate:now "{absolute_analysis_document_path}"
+php artisan validate:auto "{absolute_analysis_document_path}"
 ```
 
 The only argument must be the exact absolute path of the primary analysis document that was created or updated. Do not pass an analysis type or extra context text; the analyzer detects the document type and rules automatically. Example:
 
 ```bash
-php artisan validate:now "/absolute/path/to/project/docs/project/analysis/001-example.md"
+php artisan validate:auto "/absolute/path/to/project/docs/project/analysis/001-example.md"
 ```
 
 Validation rules:
@@ -265,7 +265,7 @@ Use concise progress blocks in the user's language. Prefer this shape:
 ```text
 Document analyzer iteration 1 started
 → Document: /absolute/path/to/analysis.md
-→ Command: php artisan validate:now "/absolute/path/to/analysis.md"
+→ Command: php artisan validate:auto "/absolute/path/to/analysis.md"
 → Result: failed
 → Findings:
   ✗ [exact analyzer finding]
@@ -273,7 +273,7 @@ Document analyzer iteration 1 started
 
 Document analyzer iteration 2 started
 → Document: /absolute/path/to/analysis.md
-→ Command: php artisan validate:now "/absolute/path/to/analysis.md"
+→ Command: php artisan validate:auto "/absolute/path/to/analysis.md"
 → Result: passed
 ```
 

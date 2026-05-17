@@ -34,10 +34,10 @@ Return types are allowed when they are required by a parent class, interface, ab
 
 ### Formatter-Owned Style
 
-- Follow the project's configured formatter for purely mechanical whitespace and token style.
+- Follow the project's configured formatter as the style reference for purely mechanical whitespace and token style. This does not authorize running the formatter.
 - Do not report formatter-owned style as a manual cleanup finding unless it contradicts the formatter output or the formatter is unavailable.
 - Do not run Pint, PHP-CS-Fixer, or any formatter command to fix or validate these standards unless the user explicitly asks for formatting. Formatter execution is handled separately by project maintainers.
-- For string concatenation, follow the active Pint/PHP-CS-Fixer configuration. In Weblabor projects that use `weblabormx/weblabor-cs`, concatenation uses one space around the `.` operator: `$prefix . '_suffix'`.
+- For string concatenation, follow the active Weblabor Coding Standards formatter configuration. In projects that use `weblabormx/weblabor-cs`, concatenation uses one space around the `.` operator: `$prefix . '_suffix'`.
 - Do not "clean up" concatenation by removing those spaces in projects using the Weblabor formatter config.
 
 ```php
@@ -102,6 +102,20 @@ return new \App\Services\Billing\PlanSyncService();
 Prefer Laravel Collections, Laravel helpers, facades, and existing project helpers when they are clearly more expressive or more consistent than native PHP for that concern.
 
 Report this rule only when a concrete existing abstraction is a better fit in the reviewed context. Native PHP is fine for simple local operations such as scalar formatting, array mechanics, and one-off file reads/writes unless the project already standardizes that exact concern behind a helper/facade.
+
+### Relationship-Based Model Creation
+
+When creating a related model, use the owning Eloquent relationship.
+
+Apply this rule anywhere in the PHP/Laravel application when the parent model instance is already available and the related record belongs to that relationship. It is not limited to code written inside the model class itself.
+
+```php
+// Correct
+$plan->limits()->create(['limit_key' => 'activities', 'limit_value' => 100]);
+
+// Incorrect
+StripeLimit::create(['limitable_type' => Plan::class, 'limitable_id' => $plan->id, ...]);
+```
 
 ### Use of long-form function syntax
 

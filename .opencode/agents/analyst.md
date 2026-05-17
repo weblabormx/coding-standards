@@ -17,6 +17,7 @@ Gaps worth asking about:
 - Missing context about what already exists in the codebase
 - Scope that could silently expand (touching more files than expected)
 - Edge cases that would materially affect implementation decisions
+- Any request that would require changing existing persistent data, users, passwords, PINs, or other real records to validate or complete the task
 
 Not worth asking about:
 - Things you can discover by reading the codebase
@@ -41,4 +42,5 @@ Clear, complete, actionable requirements that a developer can implement without 
 - Which existing patterns to follow or extend
 - Edge cases to handle
 - What must NOT be changed
+- Any persistent data, users, credentials, or existing records that must stay untouched unless the user explicitly approves a mutation
 - Any assumptions made because the codebase clearly resolved the user's request

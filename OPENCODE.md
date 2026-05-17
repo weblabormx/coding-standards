@@ -11,9 +11,27 @@
 
 When adding or clarifying standards, keep edits surgical: change only the rule, example, or nearby wording needed for the reported issue. Do not reformat, reorder, rename, or style-clean unrelated standards content in the same change.
 
-Mechanical PHP formatting is formatter-owned. Weblabor projects currently use Laravel Pint through the Weblabor Coding Standards package as the source of truth for Pint/PHP-CS-Fixer-compatible style. Standards, reviews, and fixes must not fight formatter output unless the user explicitly asks to change the formatter configuration.
+Mechanical PHP formatting is formatter-owned. Weblabor projects currently use the Weblabor Coding Standards package (`weblabormx/weblabor-cs`) as the reference for project formatter-compatible style. This is a style reference, not an instruction to execute a formatter. Standards, reviews, and fixes must not fight formatter output unless the user explicitly asks to change the formatter configuration.
 
-Do not run formatter commands as part of assistant implementation, review, cleanup, validation, or standards-update workflows unless the user explicitly asks for formatting. This includes `pint`, `./vendor/bin/pint`, Laravel Pint, PHP-CS-Fixer, Prettier, `npm run format`, project-wide formatting scripts, and equivalent auto-formatters. Formatting is handled separately by the project maintainers; assistants should make surgical edits, classify formatter-owned issues as such, and report when a formatter should be run instead of running it themselves.
+Do not run formatter commands as part of assistant implementation, review, cleanup, validation, or standards-update workflows unless the user explicitly asks for formatting. This includes `pint`, `./vendor/bin/pint`, PHP-CS-Fixer, Prettier, `npm run format`, project-wide formatting scripts, and equivalent auto-formatters. Formatting is handled separately by the project maintainers; assistants should make surgical edits, classify formatter-owned issues as such, and report when a formatter should be run instead of running it themselves.
+
+## Persistent Data Safety
+
+Validation, review, cleanup, finish, repair, and browser-check workflows must default to read-only interaction with persistent application data.
+
+- Do not create, update, delete, or directly modify existing database records, users, passwords, PINs, tokens, or other persisted application data unless the user explicitly approved that exact write operation for the current task.
+- Do not create temporary users, change existing credentials, or alter account data just to make validation, login, browser access, or testing easier.
+- When auth is required, ask the user to log in manually with an existing account in the browser session used for validation.
+- If a task truly requires changing persistent data, stop and ask the user to confirm the exact mutation before doing it.
+
+## Surgical Diff Rule
+
+All assistant edits must stay tightly inside the confirmed scope.
+
+- Modify only the files, lines, blocks, or minimal adjacent glue code required by the approved task.
+- Do not reformat, reorder, rename, restyle, or style-clean untouched code or markup.
+- If an analyzer, reviewer, or validation tool reports issues outside the confirmed diff, classify and report them instead of editing unrelated code automatically.
+- Cosmetic churn such as whitespace-only edits, blank-line-only edits, wrapping-only edits, import-order-only edits, class-order-only edits, or other formatter-like rewrites is forbidden unless the user explicitly asked for formatting or the exact hunk is required by a concrete approved rule.
 
 ---
 
@@ -69,6 +87,7 @@ Required behavior:
 - Connect Playwright over CDP to that existing Chrome session when available
 - If CDP is unavailable, use an approved equivalent runtime browser path available in the current environment, such as the Codex in-app browser or installed browser automation plugin, and state which path was used
 - When auth is required, ask the user to log in manually in the browser session used for validation
+- Do not create, modify, or repair users, passwords, PINs, or other persisted records to make browser validation possible
 - If the local app is not reachable, recover safe validation-environment issues before giving up: start the normal dev server, use a free temporary local port when the configured port is occupied, and install missing validation dependencies through the project's package manager and lockfile conventions when safe
 
 Prohibited behavior:

@@ -286,6 +286,7 @@ Within each cleanup group:
 - If a file is skipped, say why
 - If a file is deferred because it would change behavior or needs a larger design change, count it as `blocked` or `recommendation`, not as silently skipped or completed
 - If a file has both direct-fix and approval-needed findings, apply only the direct-fix findings first; do not mark the file fully complete until the approval-needed finding is approved and validated, declined, blocked, or moved to recommendations with an explicit ledger entry
+- Do not create, update, delete, or directly modify existing database records, users, passwords, PINs, tokens, or other persisted application data during cleanup unless the user explicitly approved that exact mutation
 
 Behavior-preserving rule:
 - The system should still work the same after cleanup
@@ -319,7 +320,7 @@ Check whether the current project's parent directory contains a sibling reposito
 If `../ia-analyzer` exists, external Code Analysis is required for every project-owned code or implementation file in the current cleanup group, not only the files that were edited. Run this command from `../ia-analyzer`:
 
 ```bash
-php artisan validate:now "{absolute_file_path}"
+php artisan validate:auto "{absolute_file_path}"
 ```
 
 Rules:
@@ -345,6 +346,7 @@ When a cleanup group affects a local visible flow:
 - If the URL does not include a scheme, prepend `http://`
 - Follow the global Browser Validation Rule: prefer Playwright connected over CDP, then use an approved equivalent runtime browser path when CDP is unavailable
 - When auth is required, ask the user to log in manually in the browser session used for traversal
+- Do not create temporary users, reset credentials, or directly modify persisted records to make cleanup validation possible
 - Recover safe validation-environment issues before giving up, such as starting the normal dev server, choosing a free temporary local port, or installing missing validation dependencies through the project's package manager and lockfile conventions when safe
 - Reload after code changes before checking the updated flow
 - Open the affected route or entry point, confirm the page renders without visible errors, and verify the changed data or component output is still visible and correct

@@ -99,7 +99,7 @@ Commands orchestrate agents. Each agent is a specialist with a narrow, well-defi
 
 /analyze-feature:
   command orchestrates scope/classification, repository review, optional decisions, feature-analyst drafting,
-  analysis artifact creation, then if `../ia-analyzer` exists: external Document Analysis validation with `php artisan validate:now`;
+  analysis artifact creation, then if `../ia-analyzer` exists: external Document Analysis validation with `php artisan validate:auto`;
   failed analyzer findings return to feature-analyst until the document passes completely; if `../ia-analyzer` is unavailable, use the previous internal review fallback
 ```
 
@@ -120,9 +120,29 @@ Local browser validation must use a real runtime browser path. Prefer Playwright
 
 Assistants must not run formatter commands unless the user explicitly asks for formatting.
 
-- Do not run `pint`, `./vendor/bin/pint`, Laravel Pint, PHP-CS-Fixer, Prettier, `npm run format`, project-wide formatting scripts, or equivalent auto-formatters during implementation, review, cleanup, validation, or standards updates.
+- Do not run `pint`, `./vendor/bin/pint`, PHP-CS-Fixer, Prettier, `npm run format`, project-wide formatting scripts, or equivalent auto-formatters during implementation, review, cleanup, validation, or standards updates.
 - Treat mechanical formatter output as formatter-owned and leave formatter execution to project maintainers.
 - Use surgical edits only; if formatting should be run, report it instead of running it.
+
+---
+
+## Persistent Data Safety
+
+All supported assistant workflows must default to read-only behavior against persistent application data unless the user explicitly approved a write.
+
+- Do not create, update, delete, or directly modify existing database records, users, passwords, PINs, tokens, or other persisted application data unless the user explicitly approved that exact mutation for the current task.
+- Do not create temporary users or change existing credentials just to make validation, tests, or browser access work.
+- When authentication is required, ask the user to log in manually with an existing account in the browser session used for validation.
+- If a workflow cannot proceed without changing persistent data, stop and ask for confirmation of the exact mutation before doing it.
+
+## Surgical Diffs Only
+
+All supported assistant workflows must keep edits tightly scoped.
+
+- Modify only the files, lines, blocks, or minimal adjacent glue code required by the approved task.
+- Do not reformat, reorder, rename, restyle, or style-clean untouched code or markup.
+- If a tool or analyzer reports issues outside the confirmed diff, classify and report them instead of editing unrelated code automatically.
+- Cosmetic formatting churn is forbidden unless the user explicitly asked for formatting or the exact hunk is required by a concrete approved rule.
 
 ---
 

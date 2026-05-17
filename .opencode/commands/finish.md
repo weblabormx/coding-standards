@@ -57,6 +57,7 @@ If Phase 4 modified files, validate the confirmed user flow with Playwright over
 - Read the project URL from `.env`, preferring `APP_URL` when available
 - If the URL does not include a scheme, prepend `http://`
 - When auth is required, ask the user to open Chrome with remote debugging enabled and log in manually first
+- Use the authenticated existing account from that browser session; do not create temporary users, reset credentials, or directly modify persisted records to make validation possible
 - Open the flow by connecting Playwright over CDP to that Chrome session
 - Reload after code changes before checking the updated flow
 - Confirm the visible flow works, and note any blockers or environment limitations
@@ -104,4 +105,5 @@ Summarize what was completed across all phases:
 
 - Never implement anything without user confirmation per phase
 - Run Playwright CDP browser validation before translations and documentation
+- Never create or alter existing persistent application data, users, passwords, PINs, or account records during finish-phase validation unless the user explicitly approved that exact mutation
 - If any phase surfaces a backend issue, stop and recommend `/review` or `/develop` before continuing

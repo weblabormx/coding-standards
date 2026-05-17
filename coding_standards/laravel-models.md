@@ -2,11 +2,14 @@
 
 ## Rules
 
-### Models
+### Model Structure
 
 - Eloquent models use `$guarded`, never `$fillable`.
 - Keep model sections in this relative order when those sections exist: **Static Functions → Functions → Scopes → Relationships → Attributes**.
 - Accessors and mutators belong in `Attributes`, including legacy `getFooAttribute()` / `setFooAttribute()` methods.
+
+### Model Naming & Organization
+
 - Relationship names must describe exactly what they return. Add qualifiers only when there are multiple relationships of the same type.
 - Static query/finder methods must name the returned subject. Filters may appear after the subject, e.g. `getPricesByInterval`.
 - Comments are allowed when they mark real structural groups or explain non-obvious domain logic. Decorative comments are not allowed.
@@ -131,18 +134,6 @@ $subAddon->status->is('Active');
 
 // Incorrect
 $subAddon->status === AddOnStatus::Active;
-```
-
-### Relationship-Based Model Creation
-
-When creating a related model, use the owning Eloquent relationship.
-
-```php
-// Correct
-$plan->limits()->create(['limit_key' => 'activities', 'limit_value' => 100]);
-
-// Incorrect
-StripeLimit::create(['limitable_type' => Plan::class, 'limitable_id' => $plan->id, ...]);
 ```
 
 ### Pending Collections — Mutator + Observer Pattern

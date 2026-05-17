@@ -139,6 +139,7 @@ Reserve `#[Computed]` for values consumed in the Blade view or reused across mul
 - Keep typed Eloquent model/object properties as their own declarations.
 - Never initialize string properties to empty string (`''`)
 - A meaningful non-empty default string is allowed when it is intentional UI or workflow state. Do not fail this rule just because a simple property has a non-empty string default.
+- `null` defaults on untyped public properties are allowed for optional UI/workflow state. Do not fail this rule for `public $property = null;`; fail only when a simple property is explicitly type-declared or when an empty string default is used.
 
 ```php
 // Correct
@@ -146,6 +147,7 @@ public Plan $object;
 public $prices = [], $limits = [], $features = [];
 public $newFeature, $otherVariable;
 public $afterDeployCommands = 'composer install';
+public $editingCommentPath = null;
 
 // Incorrect
 public string $object_id = '';

@@ -8,7 +8,7 @@ description: Reviews code against Weblabor coding standards. Used as the interna
 Review code against Weblabor coding standards. When `../ia-analyzer` exists, commands should prefer external Code Analysis with:
 
 ```bash
-php artisan validate:now "{absolute_modified_file_path}"
+php artisan validate:auto "{absolute_modified_file_path}"
 ```
 
 from `../ia-analyzer` for every modified code file. Pass only the absolute file path; do not pass an analysis type or context text.
@@ -23,7 +23,7 @@ Report only findings that matter for correctness, maintainability, standards com
 
 Formatter-owned style:
 - Do not report purely mechanical whitespace or token formatting as a finding when it matches the active project formatter.
-- In Weblabor projects, Laravel Pint through Weblabor Coding Standards is the current source of truth for Pint/PHP-CS-Fixer-compatible PHP formatting.
+- In Weblabor projects, the Weblabor Coding Standards package (`weblabormx/weblabor-cs`) is the current formatting reference for PHP style; this does not mean the reviewer should run a formatter.
 - If a style question conflicts with formatter output, classify it as formatter-owned or rule friction instead of asking for manual rewrites.
 - Do not run Pint, PHP-CS-Fixer, Prettier, `npm run format`, or equivalent formatter commands unless the user explicitly asks for formatting.
 - Recommended fixes must be surgical and must not include unrelated reformatting.

@@ -59,7 +59,7 @@ Standards update scope:
 - Edit only the rule text, examples, or nearby context needed to cover the reported issue.
 - Do not reformat, reorder, rename, or style-clean unrelated standards content while adding or clarifying a rule.
 - Do not run Pint, PHP-CS-Fixer, Prettier, `npm run format`, broad formatters, project-wide formatting commands, or equivalent formatter scripts against code or standards documentation as part of a rule update unless the user explicitly asks for formatting.
-- Treat mechanical PHP style as formatter-owned: Weblabor projects currently use Laravel Pint through the Weblabor Coding Standards package, so rules must not contradict Pint/PHP-CS-Fixer output unless the user explicitly asks to change the formatter configuration.
+- Treat mechanical PHP style as formatter-owned: Weblabor projects currently use the Weblabor Coding Standards package (`weblabormx/weblabor-cs`) as the formatting reference, not as a formatter this command should run, so rules must not contradict formatter output unless the user explicitly asks to change the formatter configuration.
 - If the reported issue is caused by formatter output, document the formatter-backed convention instead of rewriting code or standards to fight the formatter.
 
 ---

@@ -62,6 +62,7 @@ Inspect, without modifying files:
 When browser validation is possible:
 - Use the global Browser Validation Rule, with Playwright connected over CDP to a user-opened Chrome session as the preferred primary way to reproduce and verify the visible failure
 - Identify the traversal scope and entry points that will be used later during browser validation
+- When auth is required, use only an existing authenticated account. Do not create temporary users, reset credentials, or directly modify persisted records to make the repaired flow accessible.
 
 If browser validation is not possible, tell the user clearly:
 
@@ -171,7 +172,7 @@ When the issue is a user-facing flow and Playwright CDP validation is available,
 
 Run mutation-capable translation commands such as `php artisan lang:sync` only after the repair plan is approved or when the user already authorized direct repair.
 
-Do not run destructive commands, production migrations, data resets, force operations, or broad environment changes without explicit user approval.
+Do not run destructive commands, production migrations, direct data edits, user/account resets, data resets, force operations, or broad environment changes without explicit user approval.
 
 ---
 

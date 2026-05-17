@@ -32,6 +32,10 @@ Report grouped by file: path, violations with line numbers and complexity level.
 
 Apply fixes in order of complexity — `low` first, then `medium`, then `high`. For `high` complexity changes, confirm with the user before applying.
 
+- Edit only the approved files, elements, and the minimum surrounding markup/classes needed for the confirmed UI change.
+- Do not restyle, reorder classes, rename structures, or clean up unrelated markup outside the approved UI diff.
+- Do not introduce cosmetic formatting churn in untouched areas.
+
 ## After implementing
 
 Always call the `ux-designer` agent after completing implementation. Do not present work to the user directly.

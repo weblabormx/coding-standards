@@ -69,11 +69,12 @@ When modifying or repairing existing functionality, preserve the existing struct
 The developer must:
 
 - Modify only files required by the confirmed scope.
+- In existing files, modify only the specific lines, blocks, functions, classes, markup sections, or adjacent glue code required by the confirmed scope. Do not refactor, rename, reorder, restyle, or "clean up" untouched parts of the same file unless that exact surrounding change is required for the confirmed behavior to work.
 - Follow existing codebase patterns and the standards under `coding_standards/` plus guides under `guides/`.
 - Preserve existing patterns for existing features; apply standards to new code without restructuring unrelated working code.
 - Reuse an existing unpushed migration for the same schema/task when safe instead of creating unnecessary follow-up migrations.
 - Return the list of files it created or modified.
-- Apply any later Code Analysis findings sent back by this command.
+- Apply later Code Analysis findings only when they point to code created or changed by this command, or to the minimal adjacent code that must change for the confirmed implementation to work correctly. For newly created files, the whole new file is in scope. For existing files, do not modify untouched legacy code only because the analyzer flags it.
 - Do not run Pint, PHP-CS-Fixer, Prettier, `npm run format`, project-wide formatting scripts, or equivalent formatter commands unless the user explicitly asks for formatting.
 
 Do not write documentation as part of this command unless the confirmed scope explicitly requires changing documentation files.
@@ -110,7 +111,7 @@ Check whether the current project's parent directory contains a sibling reposito
 If `../ia-analyzer` exists, external Code Analysis is required in this command. Run this command from `../ia-analyzer` for each modified code or implementation file:
 
 ```bash
-php artisan validate:now "{absolute_modified_file_path}"
+php artisan validate:auto "{absolute_modified_file_path}"
 ```
 
 The only argument must be the exact absolute path of the modified file. Do not pass an analysis type or extra context text; the analyzer detects the file type and rules automatically.
@@ -120,9 +121,13 @@ Validation rules:
 - Show each validation pass as `Code analyzer iteration N started`.
 - Show every file being validated and the exact command run for it.
 - Treat analyzer findings as required development feedback when they are coherent, actionable, and connected to the confirmed implementation or a real defect introduced by it.
-- Return coherent analyzer-requested fixes to `developer`, update the affected files, then rerun Code Analysis for every affected modified code file.
+- When the analyzer reports an existing file, treat only findings inside the lines, blocks, or directly affected surrounding code changed by this command as in scope. For a newly created file, treat findings across the whole file as in scope.
+- Return only in-scope analyzer-requested fixes to `developer`, update the affected files, then rerun Code Analysis for every affected modified code file.
 - Apply small and medium analyzer fixes during development without asking for separate approval, as long as they preserve the confirmed scope and make technical sense.
+- Do not modify unrelated pre-existing code in an existing file only to satisfy analyzer preferences, naming suggestions, formatter friction, or legacy issues elsewhere in that file.
 - Do not chase analyzer comments that are incoherent, contradict repository evidence, request impossible changes, or only repeat formatter/rule friction with no meaningful code improvement; classify them explicitly instead of iterating forever.
+- If the analyzer reports findings only in untouched legacy sections of an existing file, classify them as out-of-scope pre-existing findings, leave that code unchanged, and continue with the confirmed implementation instead of refactoring the file.
+- A modified existing file does not require legacy-cleanup changes outside the confirmed diff just to achieve a globally clean analyzer report. Report the remaining out-of-scope findings clearly instead of expanding the implementation.
 - If an analyzer finding would require a broad refactor outside the confirmed implementation scope, do not expand the task automatically unless it is necessary to fix a real defect in the delivered feature; report it as a follow-up or ask the user whether to proceed.
 - If the developer changes additional code files while fixing analyzer findings, add those files to the validation queue.
 - Do not stop just because the number of analyzer iterations is high when findings are still coherent and progress is being made.
@@ -138,6 +143,7 @@ When the confirmed scope affects a real user flow in a local project UI, validat
 - Prefer Playwright connected over CDP to a user-opened Chrome session when available.
 - If the preferred browser path is unavailable, use an approved equivalent runtime browser path from the current environment, such as the Codex in-app browser or installed browser automation plugin, and state which path was used.
 - When auth is required, ask the user to log in manually in the browser session used for validation before checking protected flows.
+- Do not create temporary users, reset credentials, or directly modify persisted records to make validation possible.
 - If the local server is down, start the project's normal dev server. If the configured port is occupied, choose an available safe local port and update only the temporary validation URL, not committed project config.
 - If validation dependencies are missing, install them using the project's package manager and lockfile conventions when that is safe in the current task; otherwise report the exact blocker.
 - Reload after local code changes before checking the flow.
@@ -202,6 +208,8 @@ Stop here. Do not run extra documentation work as part of this command unless ex
 - Preserve existing structure when changing existing functionality unless the structure is the confirmed root cause; use current standards for new functionality that does not already exist
 - Unless the user explicitly forbids commits, create one validated commit with the task name after implementation and validation pass
 - Protect concurrent work: modify, validate, stage, and commit only this command's files; never discard unrelated files or rewrite unrelated commits
+- When `Code Analysis` runs on an existing modified file, only findings inside the confirmed diff or the minimal adjacent code required by that diff are in scope; findings elsewhere in the file must be classified and left unchanged unless fixing them is truly necessary for correctness
+- Never create or alter existing persistent application data, users, passwords, PINs, or account records during implementation or validation unless the user explicitly approved that exact mutation
 - Reuse safe unpushed migrations for the same task/schema instead of creating unnecessary follow-up migrations
 - Always run impact analysis and validation that matches the change type before committing, including migrations, frontend proof/build, and browser validation for user-facing flows when available
 - For data-loading changes, inspect query paths and eager loading; do not introduce N+1 or repeated-query regressions

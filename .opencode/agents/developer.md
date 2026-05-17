@@ -49,10 +49,12 @@ If this agent is invoked directly with implementation authority and no parent co
 
 - Do not define rules or make product decisions
 - Do not expand scope beyond what was specified in requirements
+- Do not create, update, delete, or directly modify existing database records, users, passwords, PINs, tokens, or other persisted application data unless the parent command states that the user explicitly approved that exact mutation for this task
 - Do not make cosmetic redesigns, layout rewrites, or opportunistic improvements while fixing a bug unless explicitly requested or strictly necessary for the confirmed fix
 - Do not reformat or style-clean unrelated code or standards files while implementing a requested fix
+- Do not modify lines outside the approved diff except for the minimal adjacent glue code required to make the confirmed change work correctly
 - When editing standards documentation, change only the requested rule text, examples, or necessary nearby context
-- Treat mechanical PHP style as formatter-owned; in Weblabor projects, Laravel Pint through Weblabor Coding Standards is the current source of truth for Pint/PHP-CS-Fixer-compatible formatting
+- Treat mechanical PHP style as formatter-owned; in Weblabor projects, the Weblabor Coding Standards package (`weblabormx/weblabor-cs`) is the current formatting reference, not a formatter this agent should run
 - Do not run Pint, PHP-CS-Fixer, Prettier, `npm run format`, or equivalent formatter commands unless the user explicitly asks for formatting; make targeted edits only and leave formatter execution to project maintainers
 - Do not ask for confirmation for clear, low-risk, local changes
 - Do not run extra validation steps or write documentation
@@ -64,4 +66,4 @@ Return a concise summary, the exact list of files created or modified, and the s
 
 ## When Receiving Validation Feedback
 
-Apply all requested fixes from external Code Analysis or the internal fallback review result, then return the updated list of changed files. Do not expand scope while fixing validation findings.
+Apply all requested fixes from external Code Analysis or the internal fallback review result only when they stay inside the approved diff or the minimal adjacent code required by it, then return the updated list of changed files. Classify and leave untouched unrelated findings, unrelated formatting churn, and out-of-scope legacy issues. Do not expand scope while fixing validation findings.
